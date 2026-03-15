@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   // title: "Shoppix - shop like no other",
   title: {
     default: "Shoppix - shop like no other",
-    template: "%s | Shoppix",ver
+    template: "%s | Shoppix",
   },
   description: "E-Commerce Store specializing in the pruchase and sale of all kinds of products.",
   verification: {
