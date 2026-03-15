@@ -1,125 +1,96 @@
+// src/components/traffic.tsx
+
 "use client";
 
-import { createMachine } from "xstate";
-import { useMachine } from "@xstate/react";
+import { useEffect, useMemo, useState } from "react";
 
-const trafficLightMachine = createMachine({
-  id: "trafficLight",
-  initial: "red",
-  states: {
-    red: {
-      after: { 3000: "green" },
-    },
-    green: {
-      on: {
-        PEDESTRIAN_BUTTON: "yellow.pedestrian",
-      },
-      after: { 4500: "yellow.normal" },
-    },
-    yellow: {
-      initial: "normal",
-      states: {
-        normal: {
-          after: { 500: "#trafficLight.red" },
-        },
-        pedestrian: {
-          after: { 1000: "#trafficLight.red" },
-        },
-      },
-    },
-  },
-});
+type LightColor = "red" | "yellow" | "green";
 
-export function TrafficLight() {
-  const [state, send] = useMachine(trafficLightMachine);
+const sequence: ReadonlyArray<LightColor> = ["red", "green", "yellow"];
 
-  const getColor = () => {
-    if (state.matches("red")) return "red";
-    if (state.matches("green")) return "green";
-    if (state.matches("yellow")) return "yellow";
-    return "gray";
+const durations: Record<LightColor, number> = {
+  red: 4000,
+  green: 4000,
+  yellow: 1500,
+};
+
+function getNextLight(current: LightColor): LightColor {
+  const currentIndex = sequence.indexOf(current);
+  const nextIndex = (currentIndex + 1) % sequence.length;
+  return sequence[nextIndex];
+}
+
+function lightClasses(isActive: boolean, color: LightColor) {
+  const base =
+    "h-16 w-16 rounded-full border border-slate-300 transition-all duration-300";
+  const activeMap: Record<LightColor, string> = {
+    red: "bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.45)]",
+    yellow: "bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.45)]",
+    green: "bg-green-500 shadow-[0_0_30px_rgba(34,197,94,0.45)]",
   };
 
-  const color = getColor();
+  return `${base} ${isActive ? activeMap[color] : "bg-slate-200"}`;
+}
+
+export default function Traffic() {
+  const [currentLight, setCurrentLight] = useState<LightColor>("red");
+  const [isRunning, setIsRunning] = useState(true);
+
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const timeout = window.setTimeout(() => {
+      setCurrentLight((prev) => getNextLight(prev));
+    }, durations[currentLight]);
+
+    return () => window.clearTimeout(timeout);
+  }, [currentLight, isRunning]);
+
+  const statusLabel = useMemo(() => {
+    switch (currentLight) {
+      case "red":
+        return "Stop";
+      case "yellow":
+        return "Caution";
+      case "green":
+        return "Go";
+      default:
+        return "Standby";
+    }
+  }, [currentLight]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-8">
-      <div className="bg-gray-800 rounded-3xl p-6 shadow-2xl">
-        <div className="space-y-4">
-          <div
-            className={`w-24 h-24 rounded-full transition-all duration-300 ${
-              color === "red"
-                ? "bg-red-500 shadow-lg shadow-red-500/50"
-                : "bg-red-900"
-            }`}
-          />
-          <div
-            className={`w-24 h-24 rounded-full transition-all duration-300 ${
-              color === "yellow"
-                ? "bg-yellow-400 shadow-lg shadow-yellow-400/50"
-                : "bg-yellow-900"
-            }`}
-          />
-          <div
-            className={`w-24 h-24 rounded-full transition-all duration-300 ${
-              color === "green"
-                ? "bg-green-500 shadow-lg shadow-green-500/50"
-                : "bg-green-900"
-            }`}
-          />
-        </div>
+    <section className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-slate-950">Traffic Light</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          A simple client-side traffic light simulation built without external
+          state machine dependencies.
+        </p>
       </div>
 
-      <div className="mt-8 space-y-4 text-center">
-        <div className="bg-white rounded-lg p-4 shadow-md">
-          <p className="text-sm font-semibold text-gray-600">Current State</p>
-          <p className="text-2xl font-bold text-gray-800">
-            {state.value.toString()}
+      <div className="mx-auto flex w-fit flex-col gap-4 rounded-[2rem] bg-slate-900 p-5">
+        <div className={lightClasses(currentLight === "red", "red")} />
+        <div className={lightClasses(currentLight === "yellow", "yellow")} />
+        <div className={lightClasses(currentLight === "green", "green")} />
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm text-slate-500">Current state</p>
+          <p className="text-lg font-semibold capitalize text-slate-950">
+            {currentLight} — {statusLabel}
           </p>
         </div>
 
         <button
-          onClick={() => send({ type: "PEDESTRIAN_BUTTON" })}
-          disabled={!state.matches("green")}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-            state.matches("green")
-              ? "bg-blue-500 text-white hover:bg-blue-600 shadow-md"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+          type="button"
+          onClick={() => setIsRunning((prev) => !prev)}
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          Pedestrian Crossing Button
+          {isRunning ? "Pause" : "Resume"}
         </button>
-
-        <div className="bg-blue-50 rounded-lg p-4 text-left text-sm">
-          <p className="font-semibold text-blue-900 mb-2">How it works:</p>
-          <ul className="space-y-1 text-blue-800">
-            <li>• Red → Green (auto after 3s)</li>
-            <li>• Green → Yellow Normal (auto after 4.5s, then 0.5s yellow)</li>
-            <li>
-              • Green + Button → Yellow Pedestrian (immediate, then 1s yellow)
-            </li>
-            <li>• Yellow → Red (depends on which yellow)</li>
-          </ul>
-        </div>
-
-        <div className="bg-purple-50 rounded-lg p-4 text-left text-sm">
-          <p className="font-semibold text-purple-900 mb-2">Notice:</p>
-          <p className="text-purple-800">
-            When in yellow, the state value shows as an object like{" "}
-            <code className="bg-purple-200 px-1 rounded">yellow.normal</code> or{" "}
-            <code className="bg-purple-200 px-1 rounded">
-              yellow.pedestrian
-            </code>
-          </p>
-          <p className="text-purple-800 mt-2">
-            But{" "}
-            <code className="bg-purple-200 px-1 rounded">
-              {state.matches("yellow")}
-            </code>{" "}
-            returns true for BOTH!
-          </p>
-        </div>
       </div>
-    </div>
+    </section>
   );
 }
