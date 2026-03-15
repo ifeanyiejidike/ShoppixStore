@@ -38,7 +38,7 @@ export default function RegistrationPage() {
 
   async function onSubmit(data: RegisterSchema) {
     try {
-      await axiosInstance.post("api/users", data);
+      await axiosInstance.post("users", data);
 
       toast.success("Registration successful! login", {
         position: "top-right",

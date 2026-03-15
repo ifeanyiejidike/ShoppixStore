@@ -17,15 +17,15 @@ export default function Header() {
 
   const { user, isLoggedIn, logout, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-          <span className="text-gray-400">Loading...</span>
-        </div>
-      </header>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+  //       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
+  //         <span className="text-gray-400">Loading...</span>
+  //       </div>
+  //     </header>
+  //   );
+  // }
 
   const getUserDisplayName = (email: string | undefined) => {
     if (!email) return "";
