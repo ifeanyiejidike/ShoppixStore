@@ -1,0 +1,22 @@
+# Local development override: bind-mounts source for live reload and uses
+# the Django dev server instead of gunicorn.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  web:
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+  celery_worker:
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+    volumes:
+      - .:/app
+  celery_beat:
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+    volumes:
+      - .:/app

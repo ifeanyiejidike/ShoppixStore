@@ -1,0 +1,213 @@
+# =============================================================================
+# ShoppixStore — root .gitignore
+# Monorepo: shoppix/ (Next.js frontend) + shoppix-backend/ (Django backend).
+# Rules here apply repo-wide; paths are written without a leading slash where
+# the pattern is meant to match in either subdirectory (e.g. node_modules/
+# inside shoppix/, __pycache__/ inside shoppix-backend/).
+# =============================================================================
+
+# -----------------------------------------------------------------------
+# Secrets & environment config — NEVER commit real credentials.
+# .env.example and .env.production.example (if ever added) are the only
+# tracked env files; every real .env variant, in either app, is ignored.
+# -----------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets.json
+local_settings.py
+settings_local.py
+
+# =============================================================================
+# BACKEND (shoppix-backend/) — Django + DRF + Celery
+# =============================================================================
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Packaging / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+wheels/
+!wheels/
+!wheels/*.whl
+!wheels/README.md
+pip-wheel-metadata/
+MANIFEST
+
+# Django — database, media, static
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
+db.pre_restore_*.sqlite3
+*.sqlite3-journal
+/shoppix-backend/staticfiles/
+/shoppix-backend/static_root/
+/shoppix-backend/media/
+
+# Runtime artifacts — logs, backups
+/logs/
+*.log
+*.log.*
+/backups/
+
+# Testing / coverage / type-checking caches (shared with frontend section below)
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyright/
+.ruff_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis (local file-persisted dump, if ever run alongside the project)
+dump.rdb
+
+# Jupyter (ad hoc exploration notebooks some contributors may use)
+.ipynb_checkpoints/
+
+# =============================================================================
+# FRONTEND (shoppix/) — Next.js + TypeScript
+# As provided by the project owner.
+# =============================================================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Package manager locks (keep only what you use — shoppix uses npm/package-lock.json)
+bun.lockb
+.bun/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build output
+.output/
+.vinxi/
+dist/
+build/
+
+# Vercel
+.vercel
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Tailwind / PostCSS cache
+.tailwind-cache/
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Turbopack / Turborepo
+.turbo/
+
+# Cache / Temp
+.cache/
+.temp/
+.tmp/
+*.local
+
+# Sentry
+.sentryclirc
+
+# =============================================================================
+# SHARED — Docker, editors, OS cruft
+# =============================================================================
+
+# Docker (override files are machine-specific, not meant to be shared)
+docker-compose.override.yml
+.dockerignore.local
+
+# Editors / IDEs
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.spyderproject
+.spyproject
+.ropeproject
+
+# OS cruft
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Misc backup/temp file patterns
+*.bak
+*.orig
+*.tmp
+*.temp
+
+
+# Others
+claude-chat.txt

@@ -1,0 +1,588 @@
+### Shoppix API — requests.http
+### Works with the "REST Client" extension in VS Code, or JetBrains' built-in
+### HTTP Client (IntelliJ/PyCharm/WebStorm). Requests run top-to-bottom within
+### a section since later ones reuse cookies/variables set by earlier ones.
+###
+### Setup:
+###   1. Run the backend locally (see backend README) — default http://localhost:8000
+###   2. In VS Code: install "REST Client" (humao.rest-client), open this file,
+###      click "Send Request" above each block. Cookies persist automatically
+###      across requests in the same file/session.
+###   3. Run `python manage.py seed_demo_data` first — this file assumes the
+###      seeded accounts exist (admin@shoppix.com, vendor@shoppix.com, customer@shoppix.com).
+###
+### Session note: Django's session+CSRF auth means order matters. Always hit
+### the relevant "CSRF" request for a role before that role's first unsafe
+### (POST/PUT/PATCH/DELETE) request, and log in as that role before hitting
+### endpoints that require it. Each section below is self-contained if run
+### in order from its own "CSRF" step.
+
+@baseUrl = http://localhost:8000/api
+
+
+###############################################################################
+# 0. HEALTH / DOCS
+###############################################################################
+
+### API schema (OpenAPI JSON)
+GET {{baseUrl}}/schema/
+
+### Swagger UI — open in a browser, not meant for REST Client
+# GET {{baseUrl}}/docs/
+
+
+###############################################################################
+# 1. ACCOUNTS — auth, profile, shipping addresses
+###############################################################################
+
+### Get CSRF cookie (must run before any POST/PUT/PATCH/DELETE below)
+# @name csrf
+GET {{baseUrl}}/accounts/csrf/
+
+### Register a new customer
+POST {{baseUrl}}/accounts/register/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "email": "newcustomer@shoppix.com",
+  "password": "NewCustomer@1234",
+  "confirm_password": "NewCustomer@1234"
+}
+
+### Verify email (uid/token come from the console-logged email in dev —
+### copy them from the terminal running `manage.py runserver`)
+POST {{baseUrl}}/accounts/verify-email/
+Content-Type: application/json
+
+{
+  "uid": "PASTE_UID_FROM_EMAIL",
+  "token": "PASTE_TOKEN_FROM_EMAIL"
+}
+
+### Login as the seeded customer
+# @name customerLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com",
+  "password": "Customer@12345"
+}
+
+### Get current user profile
+GET {{baseUrl}}/accounts/me/
+
+### Change password (while logged in)
+POST {{baseUrl}}/accounts/change-password/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "old_password": "Customer@12345",
+  "new_password": "Customer@12345"
+}
+
+### Request a password reset email (always returns 200, doesn't confirm the email exists)
+POST {{baseUrl}}/accounts/password-reset/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com"
+}
+
+### Confirm password reset (uid/token from the console-logged email)
+POST {{baseUrl}}/accounts/password-reset/confirm/
+Content-Type: application/json
+
+{
+  "uid": "PASTE_UID_FROM_EMAIL",
+  "token": "PASTE_TOKEN_FROM_EMAIL",
+  "new_password": "Customer@12345"
+}
+
+### List my shipping addresses
+GET {{baseUrl}}/accounts/addresses/
+
+### Create a shipping address
+# @name createAddress
+POST {{baseUrl}}/accounts/addresses/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "first_name": "Ada",
+  "last_name": "Okafor",
+  "phone": "08012345678",
+  "address": "12 Aba Road",
+  "state": "Rivers",
+  "lga": "Port Harcourt",
+  "is_default": true
+}
+
+### Retrieve one address
+GET {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
+
+### Update an address
+PATCH {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
+Content-Type: application/json
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+{
+  "phone": "08099999999"
+}
+
+### Delete an address
+DELETE {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+### Logout
+POST {{baseUrl}}/accounts/logout/
+X-CSRFToken: {{csrf.response.body.csrfToken}}
+
+
+###############################################################################
+# 2. VENDORS — onboarding, public storefronts, admin approval
+###############################################################################
+
+### CSRF (fresh cookie for this section)
+# @name csrfVendor
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as a plain customer who wants to become a vendor
+# @name applicantLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
+
+{
+  "email": "newcustomer@shoppix.com",
+  "password": "NewCustomer@1234"
+}
+
+### Apply to become a vendor (creates Vendor with is_activated=False)
+# @name vendorApply
+POST {{baseUrl}}/vendors/apply/
+Content-Type: application/json
+X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
+
+{
+  "email": "newcustomer@shoppix.com",
+  "brand_name": "Naija Gadgets Co",
+  "description": "Quality gadgets, fast delivery across Nigeria."
+}
+
+### Get my own vendor profile
+GET {{baseUrl}}/vendors/me/
+
+### Update my vendor profile (brand description, avatar, etc.)
+PATCH {{baseUrl}}/vendors/me/
+Content-Type: application/json
+X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
+
+{
+  "description": "Updated brand description."
+}
+
+### --- Public storefront browsing (no auth needed) ---
+
+### List all activated vendors
+GET {{baseUrl}}/vendors/
+
+### Filter to diamond-tier vendors only
+GET {{baseUrl}}/vendors/?is_diamond=true
+
+### Search vendors by name
+GET {{baseUrl}}/vendors/?search=TechHub
+
+### Get one vendor's public storefront by slug
+GET {{baseUrl}}/vendors/techhub-nigeria/
+
+### --- Admin approval (requires an admin/superuser session) ---
+
+### CSRF for admin section
+# @name csrfAdmin
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as admin
+# @name adminLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
+
+{
+  "email": "admin@shoppix.com",
+  "password": "Admin@12345"
+}
+
+### List all vendor applications (admin only)
+GET {{baseUrl}}/vendors/admin/vendors/
+
+### Approve a vendor (replace the id with one from the list above)
+POST {{baseUrl}}/vendors/admin/vendors/VENDOR_ID_HERE/approve/
+X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
+
+### Suspend a vendor
+POST {{baseUrl}}/vendors/admin/vendors/VENDOR_ID_HERE/suspend/
+X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
+
+
+###############################################################################
+# 3. CATALOG — categories & products
+###############################################################################
+
+### --- Public browsing (no auth needed) ---
+
+### List categories
+GET {{baseUrl}}/catalog/categories/
+
+### Get one category by slug
+GET {{baseUrl}}/catalog/categories/electronics/
+
+### List products (paginated)
+GET {{baseUrl}}/catalog/products/
+
+### List products with filters: category + price range + in stock + flash sale
+GET {{baseUrl}}/catalog/products/?category=phones&min_price=50000&max_price=300000&in_stock=true
+
+### Search products
+GET {{baseUrl}}/catalog/products/?search=earbuds
+
+### Order products by price ascending
+GET {{baseUrl}}/catalog/products/?ordering=current_price
+
+### Get one product by slug
+GET {{baseUrl}}/catalog/products/soundwave-bluetooth-earbuds-d23b0baa/
+
+### --- Vendor-managed catalog (requires an activated vendor session) ---
+
+### CSRF for vendor section
+# @name csrfCatalogVendor
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as the seeded, activated vendor
+# @name catalogVendorLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+
+{
+  "email": "vendor@shoppix.com",
+  "password": "Vendor@12345"
+}
+
+### Create a category (admin only — vendors cannot)
+POST {{baseUrl}}/catalog/categories/
+Content-Type: application/json
+X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+
+{
+  "name": "Home Appliances"
+}
+
+### Create a product (as an activated vendor)
+# @name createProduct
+POST {{baseUrl}}/catalog/products/
+Content-Type: application/json
+X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+
+{
+  "name": "Portable Blender X200",
+  "description": "USB-rechargeable portable blender, 400ml.",
+  "stock": 40,
+  "current_price": "12500.00",
+  "old_price": "16000.00",
+  "is_on_flash_sales": true
+}
+
+### Update my own product
+PATCH {{baseUrl}}/catalog/products/{{createProduct.response.body.slug}}/
+Content-Type: application/json
+X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+
+{
+  "stock": 35
+}
+
+### Delete my own product
+DELETE {{baseUrl}}/catalog/products/{{createProduct.response.body.slug}}/
+X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+
+
+###############################################################################
+# 4. CART — add/update/remove items
+###############################################################################
+
+### CSRF for cart section
+# @name csrfCart
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as customer
+# @name cartCustomerLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com",
+  "password": "Customer@12345"
+}
+
+### View my cart
+GET {{baseUrl}}/cart/
+
+### Add an item to my cart (increments quantity if already present)
+# @name addToCart
+POST {{baseUrl}}/cart/items/
+Content-Type: application/json
+X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+
+{
+  "product_id": "PASTE_PRODUCT_ID_HERE",
+  "quantity": 2
+}
+
+### Update a cart item's quantity
+PATCH {{baseUrl}}/cart/items/{{addToCart.response.body.id}}/
+Content-Type: application/json
+X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+
+{
+  "quantity": 3
+}
+
+### Remove one item from the cart
+DELETE {{baseUrl}}/cart/items/{{addToCart.response.body.id}}/
+X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+
+### Clear the entire cart
+DELETE {{baseUrl}}/cart/clear/
+X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+
+
+###############################################################################
+# 5. ORDERS — checkout, history, vendor fulfillment
+###############################################################################
+
+### CSRF for orders section
+# @name csrfOrders
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as customer
+# @name ordersCustomerLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com",
+  "password": "Customer@12345"
+}
+
+### Checkout the current cart against a saved address
+# (add an item to the cart first — see section 4 — and grab an address id from section 1)
+# @name checkout
+POST {{baseUrl}}/orders/checkout/
+Content-Type: application/json
+X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
+
+{
+  "shipping_address_id": "PASTE_ADDRESS_ID_HERE"
+}
+
+### List my orders
+GET {{baseUrl}}/orders/
+
+### Filter my orders by status
+GET {{baseUrl}}/orders/?status=pending_payment
+
+### Get one order's detail
+GET {{baseUrl}}/orders/{{checkout.response.body.id}}/
+
+### Cancel an order (only while pending_payment — restocks items)
+POST {{baseUrl}}/orders/{{checkout.response.body.id}}/cancel/
+X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
+
+### --- Vendor fulfillment (requires an activated vendor session) ---
+
+### CSRF for vendor fulfillment section
+# @name csrfOrdersVendor
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as vendor
+# @name ordersVendorLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
+
+{
+  "email": "vendor@shoppix.com",
+  "password": "Vendor@12345"
+}
+
+### List my sold order line items across all orders
+GET {{baseUrl}}/orders/vendor/
+
+### Filter by fulfillment status
+GET {{baseUrl}}/orders/vendor/?fulfillment_status=paid
+
+### Advance a line item's fulfillment status (paid -> processing -> shipped -> delivered)
+POST {{baseUrl}}/orders/vendor/ORDER_ITEM_ID_HERE/status/
+Content-Type: application/json
+X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
+
+{
+  "status": "processing"
+}
+
+
+###############################################################################
+# 6. PAYMENTS — initialize, verify, webhooks
+###############################################################################
+
+### CSRF for payments section
+# @name csrfPayments
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as customer
+# @name paymentsCustomerLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com",
+  "password": "Customer@12345"
+}
+
+### Initialize a Paystack payment for a pending order
+# @name initPaystack
+POST {{baseUrl}}/payments/initialize/
+Content-Type: application/json
+X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
+
+{
+  "order_id": "PASTE_ORDER_ID_HERE",
+  "payment_method": "paystack"
+}
+
+### Initialize an Opay payment instead
+POST {{baseUrl}}/payments/initialize/
+Content-Type: application/json
+X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
+
+{
+  "order_id": "PASTE_ORDER_ID_HERE",
+  "payment_method": "opay"
+}
+
+### Manually verify a payment (frontend calls this on the gateway's redirect-back page)
+GET {{baseUrl}}/payments/verify/{{initPaystack.response.body.reference}}/
+
+### List my payments
+GET {{baseUrl}}/payments/
+
+### --- Webhooks (simulate what Paystack/Opay call server-to-server) ---
+### These require a valid HMAC signature computed from PAYSTACK_SECRET_KEY /
+### OPAY_SECRET_KEY over the raw request body — you can't hand-craft a valid
+### one here. Use the Paystack/Opay dashboard's "Test webhook" feature against
+### your local server (via ngrok or similar) instead of sending these directly.
+
+### Paystack webhook shape (for reference only — will 401 without a real signature)
+POST {{baseUrl}}/payments/webhooks/paystack/
+Content-Type: application/json
+x-paystack-signature: INVALID_WITHOUT_REAL_HMAC
+
+{
+  "event": "charge.success",
+  "data": {
+    "reference": "SHXPAY-EXAMPLE",
+    "status": "success",
+    "amount": 3000000
+  }
+}
+
+### Opay webhook shape (for reference only — will 401 without a real signature)
+POST {{baseUrl}}/payments/webhooks/opay/
+Content-Type: application/json
+signature: INVALID_WITHOUT_REAL_HMAC
+
+{
+  "payload": {
+    "reference": "SHXPAY-EXAMPLE",
+    "status": "SUCCESS"
+  }
+}
+
+
+###############################################################################
+# 7. REVIEWS — verified-purchase-gated product reviews
+###############################################################################
+
+### CSRF for reviews section
+# @name csrfReviews
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as customer
+# @name reviewsCustomerLogin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+
+{
+  "email": "customer@shoppix.com",
+  "password": "Customer@12345"
+}
+
+### List reviews for a product
+GET {{baseUrl}}/reviews/?product=PASTE_PRODUCT_ID_HERE
+
+### Create a review (will 400 unless you have a paid order for this product — see section 5)
+# @name createReview
+POST {{baseUrl}}/reviews/
+Content-Type: application/json
+X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+
+{
+  "product": "PASTE_PRODUCT_ID_HERE",
+  "rating": 5,
+  "comment": "Excellent quality, fast delivery!"
+}
+
+### Update my review
+PATCH {{baseUrl}}/reviews/{{createReview.response.body.id}}/
+Content-Type: application/json
+X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+
+{
+  "rating": 4,
+  "comment": "Updating after a week of use — still great, minor battery drain."
+}
+
+### Delete my review
+DELETE {{baseUrl}}/reviews/{{createReview.response.body.id}}/
+X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+
+
+###############################################################################
+# 8. ADMIN-ONLY SANITY CHECKS
+###############################################################################
+
+### CSRF for admin section
+# @name csrfAdminCheck
+GET {{baseUrl}}/accounts/csrf/
+
+### Login as admin
+POST {{baseUrl}}/accounts/login/
+Content-Type: application/json
+X-CSRFToken: {{csrfAdminCheck.response.body.csrfToken}}
+
+{
+  "email": "admin@shoppix.com",
+  "password": "Admin@12345"
+}
+
+### Django admin is a server-rendered UI, not an API — open in browser instead:
+# http://localhost:8000/admin/
