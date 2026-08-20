@@ -1,101 +1,115 @@
-// components/product/product-card.tsx
 "use client";
 
-import { memo, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Product } from "@/lib/types";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ShoppingBag } from "lucide-react";
+import type { ProductListItem } from "@/lib/types";
 import { formatPriceToNaira } from "@/lib/utils";
+import { getProductFallbackImage } from "@/lib/placeholder-images";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
+import { useRouter } from "next/navigation";
 
-interface ProductCardProps {
-  product: Product;
-}
+export default function ProductCard({ product }: { product: ProductListItem }) {
+  const { isLoggedIn } = useAuth();
+  const { addItem } = useCart();
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
 
-function ProductCardComponent({ product }: ProductCardProps) {
-  // Memoize price formatting
-  const formattedPrice = useMemo(
-    () => formatPriceToNaira(product.current_price),
-    [product.current_price]
-  );
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
 
-  const formattedOldPrice = useMemo(
-    () => (product.old_price ? formatPriceToNaira(product.old_price) : null),
-    [product.old_price]
-  );
+    if (!isLoggedIn) {
+      router.push(`/auth/login?next=/products`);
+      return;
+    }
+    if (!product.is_in_stock) return;
 
-  const discount = useMemo(() => {
-    if (!product.old_price) return null;
-    const oldPrice = product.old_price;
-    const currentPrice = product.current_price;
-    if (oldPrice <= currentPrice) return null;
-    return Math.round(((oldPrice - currentPrice) / oldPrice) * 100);
-  }, [product.old_price, product.current_price]);
+    setAdding(true);
+    try {
+      await addItem(product.id, 1);
+      toast.success(`Added "${product.name}" to your cart.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't add that to your cart.");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
-      <Link href={`/product/${product.id}`} className="relative block">
-        {/* Discount Badge */}
-        {discount && (
-          <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm font-bold z-10">
-            -{discount}%
+    <div className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
+      <Link href={`/products/${product.slug}`} className="flex flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold focus-visible:ring-offset-2 rounded-lg">
+        <div className="relative aspect-square w-full overflow-hidden bg-muted">
+          <Image
+            src={product.thumbnail || getProductFallbackImage(product.name)}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+
+          {/* Signature price tag — notched corner, pinned to the image */}
+          <div className="price-tag absolute top-0 right-0 bg-marigold px-2.5 py-1.5 pr-3">
+            <span className="price-tag-hole" />
+            <span className="font-mono-tag text-xs font-semibold text-marigold-ink">
+              {formatPriceToNaira(product.current_price)}
+            </span>
           </div>
-        )}
 
-        {/* Flash Sale Badge */}
-        {product.is_on_flash_sales && (
-          <div className="absolute top-2 left-2 bg-yellow-400 text-black px-2 py-1 rounded-md text-xs font-bold z-10">
-            FLASH SALE
-          </div>
-        )}
+          {product.is_on_flash_sales && product.percentage_difference > 0 && (
+            <span className="absolute bottom-2 left-2 rounded bg-coral px-2 py-0.5 font-mono-tag text-[11px] font-semibold text-white">
+              -{Math.round(product.percentage_difference)}%
+            </span>
+          )}
 
-        <Image
-          src={product.thumbnail}
-          alt={product.name}
-          width={300}
-          height={300}
-          className="w-full h-56 object-cover"
-          loading="lazy"
-        />
-      </Link>
+          {!product.is_in_stock && (
+            <div className="absolute inset-0 flex items-center justify-center bg-ink/50">
+              <span className="rounded bg-canvas px-2.5 py-1 text-xs font-medium text-ink">
+                Out of stock
+              </span>
+            </div>
+          )}
+        </div>
 
-      <div className="p-6">
-        <Link href={`/product/${product.id}`}>
-          <h3 className="font-bold text-lg mb-2 hover:text-blue-600 transition-colors line-clamp-2">
+        <div className="flex flex-1 flex-col gap-1.5 p-3 pb-0">
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">
+            {product.vendor_name}
+          </p>
+          <h3 className="text-sm font-medium text-ink leading-snug line-clamp-2 min-h-[2.5em]">
             {product.name}
           </h3>
+        </div>
+      </Link>
+
+      {/* Price + add-to-cart row lives outside the Link — a <button> can't be
+          nested inside an <a> (invalid HTML, breaks screen reader / keyboard
+          behavior), so this row is a sibling instead of nesting the button. */}
+      <div className="flex items-center justify-between gap-2 p-3 pt-1">
+        <Link href={`/products/${product.slug}`} className="flex flex-col" tabIndex={-1} aria-hidden="true">
+          <span className="font-mono-tag text-sm font-semibold text-ink">
+            {formatPriceToNaira(product.current_price)}
+          </span>
+          {product.old_price && (
+            <span className="font-mono-tag text-xs text-muted-foreground line-through">
+              {formatPriceToNaira(product.old_price)}
+            </span>
+          )}
         </Link>
 
-        <div className="flex items-center gap-2 mb-4">
-          <p className="text-gray-800 text-lg font-semibold">
-            {formattedPrice}
-          </p>
-          {formattedOldPrice && (
-            <p className="text-gray-400 text-sm line-through">
-              {formattedOldPrice}
-            </p>
-          )}
-        </div>
-
-        {/* Stock indicator */}
-        <div className="mb-3 text-sm">
-          {product.is_in_stock ? (
-            <span className="text-green-600">In Stock ({product.stock})</span>
-          ) : (
-            <span className="text-red-600">Out of Stock</span>
-          )}
-        </div>
-
         <Button
-          className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          disabled={!product.is_in_stock}
+          size="icon-sm"
+          variant="outline"
+          className="shrink-0 rounded-full border-jade text-jade hover:bg-jade hover:text-white disabled:opacity-40"
+          onClick={handleAddToCart}
+          disabled={!product.is_in_stock || adding}
+          aria-label={`Add ${product.name} to cart`}
         >
-          {product.is_in_stock ? "Add to Cart" : "Out of Stock"}
+          <ShoppingBag className="h-4 w-4" />
         </Button>
       </div>
     </div>
   );
 }
-
-// Memoize to prevent re-renders when parent re-renders
-export const ProductCard = memo(ProductCardComponent);

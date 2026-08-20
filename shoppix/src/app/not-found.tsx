@@ -1,41 +1,33 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Home, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-100 via-white to-blue-100">
-      <div className="text-center space-y-6 max-w-md px-4">
-        <div className="space-y-2">
-          <h1 className="text-9xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            404
-          </h1>
-          <h2 className="text-3xl font-bold text-gray-800">Page Not Found</h2>
-          <p className="text-gray-500">
-            {`The page you're looking for doesn't exist or has been moved.`}
-          </p>
-        </div>
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-canvas px-4">
+      <div className="max-w-md text-center">
+        <p className="font-mono-tag text-sm text-marigold-ink">404</p>
+        <h1 className="font-display mt-2 text-4xl italic text-ink">Page not found</h1>
+        <p className="mt-3 text-muted-foreground">
+          The page you&apos;re looking for doesn&apos;t exist or may have been moved.
+        </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full bg-purple-600 text-white hover:bg-purple-700 flex items-center justify-center">
-              <Home className="mr-2 h-5 w-5" />
-              Back to Home
-            </Button>
-          </Link>
-
-          <Link href="/products" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center justify-center"
-            >
-              <Search className="mr-2 h-5 w-5" />
-              Browse Products
-            </Button>
-          </Link>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          {/* Button's asChild + Slot merges the Link's <a> and the button's
+              styling into ONE element — the correct way to make a styled
+              link, rather than nesting <button> inside <a> (invalid HTML). */}
+          <Button asChild size="lg">
+            <Link href="/">
+              <Home className="h-4 w-4" />
+              Back to home
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/products">
+              <Search className="h-4 w-4" />
+              Browse products
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

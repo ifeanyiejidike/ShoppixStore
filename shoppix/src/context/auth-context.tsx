@@ -1,76 +1,102 @@
 "use client";
 
-import React, { createContext, useState, useEffect } from "react";
-import { axiosInstance } from "@/lib/axios.config";
-import { LoginSchema } from "@/app/auth/login/page";
-
-interface User {
-  id: number;
-  email: string;
-  avatar?: string;
-}
+import React, { createContext, useCallback, useEffect, useState } from "react";
+import { accountsApi, type LoginPayload, type RegisterPayload } from "@/lib/api/accounts";
+import { vendorsApi } from "@/lib/api/vendors";
+import type { User, Vendor } from "@/lib/types";
+import { getApiErrorMessage } from "@/lib/utils";
 
 interface AuthContextType {
   user: User | null;
+  vendor: Vendor | null;
   loading: boolean;
   isLoggedIn: boolean;
-  login: (data: LoginSchema) => Promise<void>;
+  login: (data: LoginPayload) => Promise<void>;
+  register: (data: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  refreshVendor: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch CSRF cookie from backend
-  const getCsrfCookie = async () => {
-    await axiosInstance.get("/csrf/"); // backend endpoint that sets CSRF cookie
-  };
-
-  const checkAuth = async () => {
+  const refreshVendor = useCallback(async () => {
     try {
-      await getCsrfCookie(); // ensure CSRF cookie exists
-      const response = await axiosInstance.get("/auth/user"); // fetch logged-in user
-      setUser(response.data);
+      const { data } = await vendorsApi.me();
+      setVendor(data);
+    } catch {
+      setVendor(null);
+    }
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await accountsApi.me();
+      setUser(data);
+      if (data.is_vendor) {
+        await refreshVendor();
+      } else {
+        setVendor(null);
+      }
     } catch {
       setUser(null);
-    } finally {
+      setVendor(null);
+    }
+  }, [refreshVendor]);
+
+  useEffect(() => {
+    // The csrftoken cookie must exist before any unsafe request; grab it
+    // once on load, then check whether a session is already active.
+    (async () => {
+      try {
+        await accountsApi.getCsrf();
+      } catch {
+        // Backend unreachable — fail open to "logged out", not a crash.
+      }
+      await refreshUser();
       setLoading(false);
+    })();
+  }, [refreshUser]);
+
+  const login = async (data: LoginPayload) => {
+    try {
+      await accountsApi.getCsrf();
+      await accountsApi.login(data);
+      await refreshUser();
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err, "Invalid email or password."));
     }
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => checkAuth(), 50); // small delay to ensure cookies exist
-    return () => clearTimeout(timer);
-  }, []);
-
-  const login = async (data: LoginSchema) => {
+  const register = async (data: RegisterPayload) => {
     try {
-      await getCsrfCookie(); // get CSRF token before login
-      await axiosInstance.post("/auth/login", data); // backend sets JWT cookies
-      await new Promise((resolve) => setTimeout(resolve, 50)); // ensure cookies are set
-      await checkAuth();
+      await accountsApi.getCsrf();
+      await accountsApi.register(data);
     } catch (err) {
-      throw err;
+      throw new Error(getApiErrorMessage(err, "Couldn't create your account."));
     }
   };
 
   const logout = async () => {
     try {
-      await getCsrfCookie(); // fetch CSRF token before logout
-      await axiosInstance.post("/auth/logout");
+      await accountsApi.logout();
     } finally {
       setUser(null);
+      setVendor(null);
     }
   };
 
   const isLoggedIn = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isLoggedIn, login, logout, checkAuth }}>
+    <AuthContext.Provider
+      value={{ user, vendor, loading, isLoggedIn, login, register, logout, refreshUser, refreshVendor }}
+    >
       {children}
     </AuthContext.Provider>
   );

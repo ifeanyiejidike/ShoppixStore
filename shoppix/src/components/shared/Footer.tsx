@@ -1,129 +1,71 @@
-"use client";
-
 import Link from "next/link";
-import { LuFacebook, LuTwitter, LuInstagram, LuYoutube } from "react-icons/lu";
+
+const FOOTER_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
+  {
+    heading: "Shop",
+    links: [
+      { label: "All products", href: "/products" },
+      { label: "Flash deals", href: "/products?flash_sale=true" },
+      { label: "Vendors", href: "/vendors" },
+    ],
+  },
+  {
+    heading: "Sell",
+    links: [
+      { label: "Become a vendor", href: "/vendor/apply" },
+      { label: "Vendor dashboard", href: "/vendor/dashboard" },
+    ],
+  },
+  {
+    heading: "Account",
+    links: [
+      { label: "My orders", href: "/account/orders" },
+      { label: "My account", href: "/account" },
+      { label: "Sign in", href: "/auth/login" },
+    ],
+  },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-100 mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-cyan-500" /> 
-              <span className="text-xl font-bold text-gray-900">
-                Shoppix
-              </span>
-            </div>
-            <p className="text-sm text-gray-500"> 
-              Your trusted marketplace for quality products from verified vendors worldwide.
+    <footer className="border-t border-border bg-ink text-canvas">
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div className="col-span-2 md:col-span-1">
+            <span className="font-display italic text-2xl font-semibold">Shoppix</span>
+            <p className="mt-3 text-sm text-canvas/70 max-w-xs">
+              Shop like no other — a marketplace for independent Nigerian vendors, all in one place.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-gray-500 hover:text-cyan-500 transition-smooth">
-                <LuFacebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-cyan-500 transition-smooth">
-                <LuTwitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-cyan-500 transition-smooth">
-                <LuInstagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-cyan-500 transition-smooth">
-                <LuYoutube className="h-5 w-5" />
-              </a>
+          </div>
+
+          {FOOTER_LINKS.map((group) => (
+            <div key={group.heading}>
+              <h3 className="font-mono-tag text-xs uppercase tracking-wider text-marigold">
+                {group.heading}
+              </h3>
+              <ul className="mt-3 flex flex-col gap-2">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-sm text-canvas/80 hover:text-canvas transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-
-          {/* Customer Service */}
-          <div>
-            {/* CHANGE 6: Adjust heading color to a solid dark color */}
-            <h3 className="font-semibold mb-4 text-gray-800">Customer Service</h3>
-            {/* CHANGE 7: Adjust text color and hover color for links */}
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li>
-                <Link href="/help" className="hover:text-cyan-500 transition-smooth">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="/track-order" className="hover:text-cyan-500 transition-smooth">
-                  Track Order
-                </Link>
-              </li>
-              <li>
-                <Link href="/returns" className="hover:text-cyan-500 transition-smooth">
-                  Returns & Refunds
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-cyan-500 transition-smooth">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* About */}
-          <div>
-            <h3 className="font-semibold mb-4 text-gray-800">About Shoppix</h3>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li>
-                <Link href="/about" className="hover:text-cyan-500 transition-smooth">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/vendor" className="hover:text-cyan-500 transition-smooth">
-                  Become a Vendor
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="hover:text-cyan-500 transition-smooth">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="/press" className="hover:text-cyan-500 transition-smooth">
-                  Press & Media
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-semibold mb-4 text-gray-800">Legal</h3>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li>
-                <Link href="/terms" className="hover:text-cyan-500 transition-smooth">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:text-cyan-500 transition-smooth">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/cookies" className="hover:text-cyan-500 transition-smooth">
-                  Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/security" className="hover:text-cyan-500 transition-smooth">
-                  Security
-                </Link>
-              </li>
-            </ul>
-          </div>
+          ))}
         </div>
 
-        {/* CHANGE 8: Adjust border-t and text color for the copyright section */}
-        <div className="mt-12 pt-8 border-t border-gray-100 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Shoppix. All rights reserved.</p>
+        <div className="mt-10 flex flex-col gap-4 border-t border-canvas/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-canvas/60">
+            © {new Date().getFullYear()} Shoppix. All rights reserved.
+          </p>
+          <p className="text-xs text-canvas/60">
+            Secure payment via <span className="text-canvas/90">Paystack</span> &{" "}
+            <span className="text-canvas/90">Opay</span>
+          </p>
         </div>
       </div>
     </footer>
   );
-};
+}

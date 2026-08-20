@@ -11,11 +11,18 @@
 ###   3. Run `python manage.py seed_demo_data` first — this file assumes the
 ###      seeded accounts exist (admin@shoppix.com, vendor@shoppix.com, customer@shoppix.com).
 ###
-### Session note: Django's session+CSRF auth means order matters. Always hit
-### the relevant "CSRF" request for a role before that role's first unsafe
-### (POST/PUT/PATCH/DELETE) request, and log in as that role before hitting
-### endpoints that require it. Each section below is self-contained if run
-### in order from its own "CSRF" step.
+### IMPORTANT — CSRF token lifecycle: Django ROTATES the CSRF token on login
+### (a deliberate security measure against session fixation), so the token
+### fetched before login is stale immediately afterward. Every section below
+### therefore fetches CSRF once before login (to authenticate the login call
+### itself), then fetches it AGAIN right after login, and every subsequent
+### unsafe request (POST/PUT/PATCH/DELETE) in that section uses the
+### post-login token. Skipping the second fetch will cause every write
+### request after login to fail with 403 "CSRF token ... incorrect".
+### (The actual frontend doesn't hit this — its axios client reads the
+### csrftoken cookie fresh on every request rather than caching a token, so
+### it automatically picks up the rotated value. This file uses named
+### requests instead, which is why the extra fetch is needed here.)
 
 @baseUrl = http://localhost:8000/api
 
@@ -35,7 +42,7 @@ GET {{baseUrl}}/schema/
 # 1. ACCOUNTS — auth, profile, shipping addresses
 ###############################################################################
 
-### Get CSRF cookie (must run before any POST/PUT/PATCH/DELETE below)
+### Get CSRF cookie (must run before the login call below)
 # @name csrf
 GET {{baseUrl}}/accounts/csrf/
 
@@ -61,7 +68,6 @@ Content-Type: application/json
 }
 
 ### Login as the seeded customer
-# @name customerLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrf.response.body.csrfToken}}
@@ -71,13 +77,17 @@ X-CSRFToken: {{csrf.response.body.csrfToken}}
   "password": "Customer@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login (Django rotates the token; see note at top of file)
+# @name csrfPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### Get current user profile
 GET {{baseUrl}}/accounts/me/
 
 ### Change password (while logged in)
 POST {{baseUrl}}/accounts/change-password/
 Content-Type: application/json
-X-CSRFToken: {{csrf.response.body.csrfToken}}
+X-CSRFToken: {{csrfPostLogin.response.body.csrfToken}}
 
 {
   "old_password": "Customer@12345",
@@ -110,7 +120,7 @@ GET {{baseUrl}}/accounts/addresses/
 # @name createAddress
 POST {{baseUrl}}/accounts/addresses/
 Content-Type: application/json
-X-CSRFToken: {{csrf.response.body.csrfToken}}
+X-CSRFToken: {{csrfPostLogin.response.body.csrfToken}}
 
 {
   "first_name": "Ada",
@@ -128,7 +138,7 @@ GET {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
 ### Update an address
 PATCH {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
 Content-Type: application/json
-X-CSRFToken: {{csrf.response.body.csrfToken}}
+X-CSRFToken: {{csrfPostLogin.response.body.csrfToken}}
 
 {
   "phone": "08099999999"
@@ -136,11 +146,11 @@ X-CSRFToken: {{csrf.response.body.csrfToken}}
 
 ### Delete an address
 DELETE {{baseUrl}}/accounts/addresses/{{createAddress.response.body.id}}/
-X-CSRFToken: {{csrf.response.body.csrfToken}}
+X-CSRFToken: {{csrfPostLogin.response.body.csrfToken}}
 
 ### Logout
 POST {{baseUrl}}/accounts/logout/
-X-CSRFToken: {{csrf.response.body.csrfToken}}
+X-CSRFToken: {{csrfPostLogin.response.body.csrfToken}}
 
 
 ###############################################################################
@@ -152,7 +162,6 @@ X-CSRFToken: {{csrf.response.body.csrfToken}}
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as a plain customer who wants to become a vendor
-# @name applicantLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
@@ -162,11 +171,14 @@ X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
   "password": "NewCustomer@1234"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfVendorPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### Apply to become a vendor (creates Vendor with is_activated=False)
-# @name vendorApply
 POST {{baseUrl}}/vendors/apply/
 Content-Type: application/json
-X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfVendorPostLogin.response.body.csrfToken}}
 
 {
   "email": "newcustomer@shoppix.com",
@@ -180,7 +192,7 @@ GET {{baseUrl}}/vendors/me/
 ### Update my vendor profile (brand description, avatar, etc.)
 PATCH {{baseUrl}}/vendors/me/
 Content-Type: application/json
-X-CSRFToken: {{csrfVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfVendorPostLogin.response.body.csrfToken}}
 
 {
   "description": "Updated brand description."
@@ -207,7 +219,6 @@ GET {{baseUrl}}/vendors/techhub-nigeria/
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as admin
-# @name adminLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
@@ -217,16 +228,20 @@ X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
   "password": "Admin@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfAdminPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### List all vendor applications (admin only)
 GET {{baseUrl}}/vendors/admin/vendors/
 
 ### Approve a vendor (replace the id with one from the list above)
 POST {{baseUrl}}/vendors/admin/vendors/VENDOR_ID_HERE/approve/
-X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
+X-CSRFToken: {{csrfAdminPostLogin.response.body.csrfToken}}
 
 ### Suspend a vendor
 POST {{baseUrl}}/vendors/admin/vendors/VENDOR_ID_HERE/suspend/
-X-CSRFToken: {{csrfAdmin.response.body.csrfToken}}
+X-CSRFToken: {{csrfAdminPostLogin.response.body.csrfToken}}
 
 
 ###############################################################################
@@ -263,7 +278,6 @@ GET {{baseUrl}}/catalog/products/soundwave-bluetooth-earbuds-d23b0baa/
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as the seeded, activated vendor
-# @name catalogVendorLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
@@ -273,10 +287,18 @@ X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
   "password": "Vendor@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfCatalogVendorPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
+### My full catalog, including inactive listings and expired flash sales
+### that the public list endpoint deliberately hides
+GET {{baseUrl}}/catalog/products/mine/
+
 ### Create a category (admin only — vendors cannot)
 POST {{baseUrl}}/catalog/categories/
 Content-Type: application/json
-X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfCatalogVendorPostLogin.response.body.csrfToken}}
 
 {
   "name": "Home Appliances"
@@ -286,7 +308,7 @@ X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
 # @name createProduct
 POST {{baseUrl}}/catalog/products/
 Content-Type: application/json
-X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfCatalogVendorPostLogin.response.body.csrfToken}}
 
 {
   "name": "Portable Blender X200",
@@ -300,7 +322,7 @@ X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
 ### Update my own product
 PATCH {{baseUrl}}/catalog/products/{{createProduct.response.body.slug}}/
 Content-Type: application/json
-X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfCatalogVendorPostLogin.response.body.csrfToken}}
 
 {
   "stock": 35
@@ -308,7 +330,7 @@ X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
 
 ### Delete my own product
 DELETE {{baseUrl}}/catalog/products/{{createProduct.response.body.slug}}/
-X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfCatalogVendorPostLogin.response.body.csrfToken}}
 
 
 ###############################################################################
@@ -320,7 +342,6 @@ X-CSRFToken: {{csrfCatalogVendor.response.body.csrfToken}}
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as customer
-# @name cartCustomerLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfCart.response.body.csrfToken}}
@@ -330,6 +351,10 @@ X-CSRFToken: {{csrfCart.response.body.csrfToken}}
   "password": "Customer@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfCartPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### View my cart
 GET {{baseUrl}}/cart/
 
@@ -337,7 +362,7 @@ GET {{baseUrl}}/cart/
 # @name addToCart
 POST {{baseUrl}}/cart/items/
 Content-Type: application/json
-X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+X-CSRFToken: {{csrfCartPostLogin.response.body.csrfToken}}
 
 {
   "product_id": "PASTE_PRODUCT_ID_HERE",
@@ -347,7 +372,7 @@ X-CSRFToken: {{csrfCart.response.body.csrfToken}}
 ### Update a cart item's quantity
 PATCH {{baseUrl}}/cart/items/{{addToCart.response.body.id}}/
 Content-Type: application/json
-X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+X-CSRFToken: {{csrfCartPostLogin.response.body.csrfToken}}
 
 {
   "quantity": 3
@@ -355,11 +380,11 @@ X-CSRFToken: {{csrfCart.response.body.csrfToken}}
 
 ### Remove one item from the cart
 DELETE {{baseUrl}}/cart/items/{{addToCart.response.body.id}}/
-X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+X-CSRFToken: {{csrfCartPostLogin.response.body.csrfToken}}
 
 ### Clear the entire cart
 DELETE {{baseUrl}}/cart/clear/
-X-CSRFToken: {{csrfCart.response.body.csrfToken}}
+X-CSRFToken: {{csrfCartPostLogin.response.body.csrfToken}}
 
 
 ###############################################################################
@@ -371,7 +396,6 @@ X-CSRFToken: {{csrfCart.response.body.csrfToken}}
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as customer
-# @name ordersCustomerLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
@@ -381,12 +405,16 @@ X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
   "password": "Customer@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfOrdersPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### Checkout the current cart against a saved address
-# (add an item to the cart first — see section 4 — and grab an address id from section 1)
+### (add an item to the cart first — see section 4 — and grab an address id from section 1)
 # @name checkout
 POST {{baseUrl}}/orders/checkout/
 Content-Type: application/json
-X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
+X-CSRFToken: {{csrfOrdersPostLogin.response.body.csrfToken}}
 
 {
   "shipping_address_id": "PASTE_ADDRESS_ID_HERE"
@@ -403,7 +431,7 @@ GET {{baseUrl}}/orders/{{checkout.response.body.id}}/
 
 ### Cancel an order (only while pending_payment — restocks items)
 POST {{baseUrl}}/orders/{{checkout.response.body.id}}/cancel/
-X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
+X-CSRFToken: {{csrfOrdersPostLogin.response.body.csrfToken}}
 
 ### --- Vendor fulfillment (requires an activated vendor session) ---
 
@@ -412,7 +440,6 @@ X-CSRFToken: {{csrfOrders.response.body.csrfToken}}
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as vendor
-# @name ordersVendorLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
@@ -421,6 +448,10 @@ X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
   "email": "vendor@shoppix.com",
   "password": "Vendor@12345"
 }
+
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfOrdersVendorPostLogin
+GET {{baseUrl}}/accounts/csrf/
 
 ### List my sold order line items across all orders
 GET {{baseUrl}}/orders/vendor/
@@ -431,7 +462,7 @@ GET {{baseUrl}}/orders/vendor/?fulfillment_status=paid
 ### Advance a line item's fulfillment status (paid -> processing -> shipped -> delivered)
 POST {{baseUrl}}/orders/vendor/ORDER_ITEM_ID_HERE/status/
 Content-Type: application/json
-X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
+X-CSRFToken: {{csrfOrdersVendorPostLogin.response.body.csrfToken}}
 
 {
   "status": "processing"
@@ -447,7 +478,6 @@ X-CSRFToken: {{csrfOrdersVendor.response.body.csrfToken}}
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as customer
-# @name paymentsCustomerLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
@@ -457,11 +487,15 @@ X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
   "password": "Customer@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfPaymentsPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### Initialize a Paystack payment for a pending order
 # @name initPaystack
 POST {{baseUrl}}/payments/initialize/
 Content-Type: application/json
-X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
+X-CSRFToken: {{csrfPaymentsPostLogin.response.body.csrfToken}}
 
 {
   "order_id": "PASTE_ORDER_ID_HERE",
@@ -471,7 +505,7 @@ X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
 ### Initialize an Opay payment instead
 POST {{baseUrl}}/payments/initialize/
 Content-Type: application/json
-X-CSRFToken: {{csrfPayments.response.body.csrfToken}}
+X-CSRFToken: {{csrfPaymentsPostLogin.response.body.csrfToken}}
 
 {
   "order_id": "PASTE_ORDER_ID_HERE",
@@ -526,7 +560,6 @@ signature: INVALID_WITHOUT_REAL_HMAC
 GET {{baseUrl}}/accounts/csrf/
 
 ### Login as customer
-# @name reviewsCustomerLogin
 POST {{baseUrl}}/accounts/login/
 Content-Type: application/json
 X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
@@ -536,6 +569,10 @@ X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
   "password": "Customer@12345"
 }
 
+### Re-fetch CSRF — REQUIRED after login
+# @name csrfReviewsPostLogin
+GET {{baseUrl}}/accounts/csrf/
+
 ### List reviews for a product
 GET {{baseUrl}}/reviews/?product=PASTE_PRODUCT_ID_HERE
 
@@ -543,7 +580,7 @@ GET {{baseUrl}}/reviews/?product=PASTE_PRODUCT_ID_HERE
 # @name createReview
 POST {{baseUrl}}/reviews/
 Content-Type: application/json
-X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+X-CSRFToken: {{csrfReviewsPostLogin.response.body.csrfToken}}
 
 {
   "product": "PASTE_PRODUCT_ID_HERE",
@@ -554,7 +591,7 @@ X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
 ### Update my review
 PATCH {{baseUrl}}/reviews/{{createReview.response.body.id}}/
 Content-Type: application/json
-X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+X-CSRFToken: {{csrfReviewsPostLogin.response.body.csrfToken}}
 
 {
   "rating": 4,
@@ -563,7 +600,7 @@ X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
 
 ### Delete my review
 DELETE {{baseUrl}}/reviews/{{createReview.response.body.id}}/
-X-CSRFToken: {{csrfReviews.response.body.csrfToken}}
+X-CSRFToken: {{csrfReviewsPostLogin.response.body.csrfToken}}
 
 
 ###############################################################################

@@ -1,7 +1,10 @@
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from apps.common.pagination import StandardResultsSetPagination
 from apps.common.permissions import IsVendor
 
 from .filters import ProductFilter
@@ -25,8 +28,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     """
     Public read access; write access limited to the owning, activated vendor.
-    Listing only ever shows active products with stock context; a vendor
-    managing their own catalog sees everything via /products/mine/.
+    The default list/retrieve only ever shows active products with stock
+    context; a vendor managing their own catalog (including inactive/expired
+    listings) uses GET /products/mine/ instead.
     """
 
     lookup_field = "slug"
@@ -46,7 +50,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list"]:
             return ProductListSerializer
         return ProductSerializer
 
@@ -55,3 +59,15 @@ class ProductViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only approved vendors can list products.")
         serializer.save()  # ProductSerializer.create() attaches request.user.vendor
+
+    @action(detail=False, methods=["get"], permission_classes=[IsVendor], pagination_class=StandardResultsSetPagination)
+    def mine(self, request):
+        """GET /api/catalog/products/mine/ — the logged-in vendor's full
+        catalog, including inactive listings and expired flash sales that
+        the public list endpoint deliberately hides."""
+        qs = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(qs)
+        serializer = ProductSerializer(page or qs, many=True, context={"request": request})
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)

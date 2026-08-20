@@ -1,90 +1,79 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { MailCheck } from "lucide-react";
+import { forgotPasswordSchema, type ForgotPasswordSchema } from "@/lib/schema";
+import { accountsApi } from "@/lib/api/accounts";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import AuthCard from "@/components/auth/AuthCard";
 
 export default function ForgotPasswordPage() {
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
+  const form = useForm<ForgotPasswordSchema>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
 
-    const form = e.currentTarget;
-    const email = (form["email"] as HTMLInputElement).value.trim();
-
-    if (!email) return setErrorMessage("Please enter your email address.");
-
-    if (!email.includes("@") || !email.includes(".")) {
-      return setErrorMessage("Please enter a valid email address.");
-    }
-
-    // Normally, you would call backend API here
-    setSuccessMessage("Password reset link has been sent to your email.");
+  const onSubmit = async (data: ForgotPasswordSchema) => {
+    // The backend always returns 200 here regardless of whether the email
+    // exists, to avoid leaking which emails are registered — so we always
+    // show the same success state too.
+    await accountsApi.requestPasswordReset(data.email).catch(() => {});
+    setSubmitted(true);
   };
 
+  if (submitted) {
+    return (
+      <AuthCard title="Check your email">
+        <div className="flex flex-col items-center gap-3 py-4 text-center">
+          <MailCheck className="h-10 w-10 text-jade" />
+          <p className="text-sm text-muted-foreground">
+            If an account exists for that email, we&apos;ve sent a link to reset your password.
+          </p>
+          <Button variant="outline" asChild className="mt-2">
+            <Link href="/auth/login">Back to sign in</Link>
+          </Button>
+        </div>
+      </AuthCard>
+    );
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 py-16">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-center mb-2 text-gray-800 dark:text-white">
-          Forgot Password
-        </h2>
-
-        <p className="text-sm text-center mb-6 text-gray-600 dark:text-gray-400">
-          Enter your email and we will send you a password reset link.
-        </p>
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Email */}
-          <div>
-            <label className="block text-sm mb-1 text-gray-600 dark:text-gray-300">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              required
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
-              focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:focus:ring-cyan-500 
-              bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-            />
-          </div>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <p className="text-red-500 text-sm">{errorMessage}</p>
-          )}
-
-          {/* Success Message */}
-          {successMessage && (
-            <p className="text-violet-600 dark:text-indigo-400 text-sm">
-              {successMessage}
-            </p>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-medium dark:bg-indigo-500 dark:hover:bg-indigo-600 transition"
-          >
-            Send Reset Link
-          </button>
+    <AuthCard
+      title="Forgot your password?"
+      subtitle="Enter your email and we'll send you a reset link."
+      footer={
+        <Link href="/auth/login" className="font-medium text-jade hover:underline">
+          Back to sign in
+        </Link>
+      }
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="mt-2" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Sending..." : "Send reset link"}
+          </Button>
         </form>
-
-        {/* Back to Login */}
-        <p className="text-sm text-center mt-6 text-gray-600 dark:text-gray-400">
-          Remembered your password?{" "}
-          <Link
-            href="/auth/login"
-            className="text-cyan-500 font-semibold hover:underline"
-          >
-            Back to Login
-          </Link>
-        </p>
-      </div>
-    </div>
+      </Form>
+    </AuthCard>
   );
 }

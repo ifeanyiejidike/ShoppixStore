@@ -18,73 +18,67 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   visibility: hidden !important;
 }
 
-/* Removes the newer Chrome password reveal icon */
 input::-webkit-password-reveal {
   display: none !important;
   visibility: hidden !important;
 }
 
+/* =============================================================================
+   SHOPPIX DESIGN TOKENS
+   A Nigerian multi-vendor marketplace. The palette pulls from market signage
+   and textile dye rather than generic SaaS blue; the mono face gives prices
+   and order references a ledger/receipt feel appropriate to commerce.
+
+   Color:
+     Ink        #10241C  deep green-black — text, dark surfaces, trust
+     Canvas     #F6F5EF  warm paper off-white — page background
+     Marigold   #E8A33D  primary accent — CTAs, price tags, badges
+     Jade       #12684A  secondary accent — vendor/success states, links
+     Coral      #E1512E  urgency — flash-sale tags, destructive actions
+     Line       #DED9C9  hairline borders on canvas
+   ========================================================================== */
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222.2 84% 4.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(222.2 47.4% 11.2%);
-  --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(210 40% 96.1%);
-  --secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --muted: hsl(210 40% 96.1%);
-  --muted-foreground: hsl(215.4 16.3% 46.9%);
-  --accent: hsl(210 40% 96.1%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(214.3 31.8% 91.4%);
-  --input: hsl(214.3 31.8% 91.4%);
-  --ring: hsl(221.2 83.2% 53.3%);
-  --radius: 0.625rem;
+  --ink: 16 20% 10%;
+  --ink-soft: 150 14% 15%;
+  --canvas: 48 20% 95%;
+  --canvas-raised: 0 0% 100%;
+  --marigold: 36 76% 58%;
+  --marigold-ink: 30 60% 24%;
+  --jade: 155 71% 23%;
+  --jade-soft: 155 40% 94%;
+  --coral: 13 74% 44%;
+  --coral-soft: 13 74% 95%;
+  --line: 42 22% 84%;
 
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
+  --background: hsl(var(--canvas));
+  --foreground: hsl(var(--ink));
+  --card: hsl(var(--canvas-raised));
+  --card-foreground: hsl(var(--ink));
+  --popover: hsl(var(--canvas-raised));
+  --popover-foreground: hsl(var(--ink));
+  --primary: hsl(var(--ink));
+  --primary-foreground: hsl(var(--canvas));
+  --secondary: hsl(var(--jade-soft));
+  --secondary-foreground: hsl(var(--jade));
+  --muted: hsl(42 18% 91%);
+  --muted-foreground: hsl(150 8% 38%);
+  --accent: hsl(var(--marigold));
+  --accent-foreground: hsl(var(--marigold-ink));
+  --destructive: hsl(var(--coral));
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(var(--line));
+  --input: hsl(var(--line));
+  --ring: hsl(var(--marigold));
+  --radius: 0.5rem;
 
-.dark {
-  --background: hsl(222.2 84% 4.9%);
-  --foreground: hsl(210 40% 98%);
-  --card: hsl(222.2 84% 4.9%);
-  --card-foreground: hsl(210 40% 98%);
-  --popover: hsl(222.2 84% 4.9%);
-  --popover-foreground: hsl(210 40% 98%);
-  --primary: hsl(210 40% 98%);
-  --primary-foreground: hsl(222.2 47.4% 11.2%);
-  --secondary: hsl(217.2 32.6% 17.5%);
-  --secondary-foreground: hsl(210 40% 98%);
-  --muted: hsl(217.2 32.6% 17.5%);
-  --muted-foreground: hsl(215 20.2% 65.1%);
-  --accent: hsl(217.2 32.6% 17.5%);
-  --accent-foreground: hsl(210 40% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(217.2 32.6% 17.5%);
-  --input: hsl(217.2 32.6% 17.5%);
-  --ring: hsl(224.3 76.3% 48%);
-
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar: hsl(var(--canvas-raised));
+  --sidebar-foreground: hsl(var(--ink));
+  --sidebar-primary: hsl(var(--ink));
+  --sidebar-primary-foreground: hsl(var(--canvas));
+  --sidebar-accent: hsl(var(--jade-soft));
+  --sidebar-accent-foreground: hsl(var(--jade));
+  --sidebar-border: hsl(var(--line));
+  --sidebar-ring: hsl(var(--marigold));
 }
 
 @theme inline {
@@ -112,6 +106,14 @@ input::-webkit-password-reveal {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  --color-ink: hsl(var(--ink));
+  --color-canvas: hsl(var(--canvas));
+  --color-marigold: hsl(var(--marigold));
+  --color-jade: hsl(var(--jade));
+  --color-jade-soft: hsl(var(--jade-soft));
+  --color-coral: hsl(var(--coral));
+  --color-coral-soft: hsl(var(--coral-soft));
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -120,6 +122,10 @@ input::-webkit-password-reveal {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
 }
 
 @layer base {
@@ -132,6 +138,62 @@ input::-webkit-password-reveal {
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  ::selection {
+    background: hsl(var(--marigold) / 0.35);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--marigold));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+  }
+  .font-mono-tag {
+    font-family: var(--font-mono), monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Signature element: the market price-tag notch. A die-cut corner fold,
+     used on product cards and price badges — the physical gesture of a
+     tag pinned to goods in a market stall, translated to the screen. */
+  .price-tag {
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  }
+  .price-tag::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    background: hsl(var(--canvas));
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+  }
+  .price-tag-hole {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: hsl(var(--ink) / 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
