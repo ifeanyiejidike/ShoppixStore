@@ -7,7 +7,7 @@ management) in one app.
 
 For what the project *is* as a whole, see the [root README](../README.md).
 For architecture decisions, feature status, and open gaps, see
-[`project-context.md`](../project-context.md) at the repo root.
+[`project-context.md`](../docs/project-context.md).
 
 ## Table of contents
 
@@ -58,7 +58,7 @@ Not default shadcn/ui styling — a custom system defined in
   market-price-tag motif tying back to the brand.
 - **Accessibility floor**: WCAG 2.1 AA. Every color pairing used for text has
   been checked against this, not just chosen by eye — see
-  `project-context.md` §11 changelog for the specific contrast audit.
+  `docs/project-context.md` §11 changelog for the specific contrast audit.
 
 ## Prerequisites
 
@@ -102,7 +102,7 @@ npm run start    # serve the production build (run `build` first)
 npm run lint     # eslint
 ```
 
-There's no test script yet — see `project-context.md` §10 (Open Gaps).
+There's no test script yet — see `docs/project-context.md` §10 (Open Gaps).
 Type-checking isn't a package.json script but is run directly:
 
 ```bash
@@ -207,7 +207,7 @@ were added to this project) — copy the pattern from an existing file in
 
 ## Testing & verification
 
-There's no automated test suite yet (see `project-context.md` §10). Until
+There's no automated test suite yet (see `docs/project-context.md` §10). Until
 one exists, treat these as the minimum bar before considering a change done:
 
 ```bash

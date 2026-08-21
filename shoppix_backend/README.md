@@ -6,8 +6,8 @@ checkout, Paystack/Opay payments, and order fulfillment.
 
 For what the project *is* as a whole, see the [root README](../README.md).
 For architecture decisions, feature-by-feature status, and open product
-decisions, see [`project-context.md`](../project-context.md) at the repo
-root — read its **Open Gaps** section before assuming any policy question
+decisions, see [`project-context.md`](../docs/project-context.md) — read its
+**Open Gaps** section before assuming any policy question
 (commission handling, moderation, review gating, etc.) is settled.
 
 ## Table of contents
@@ -119,7 +119,7 @@ gitignored.
 | `FRONTEND_URL` | `http://localhost:3000` | Used to build links in emails. |
 | `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` | `http://localhost:3000` | Must match the frontend's actual origin, or the browser will reject requests. |
 | `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Console backend prints emails to stdout — fine for dev, replace for prod. |
-| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` / `EMAIL_USE_TLS` | — | SMTP provider config. Not yet chosen — see `project-context.md` §10. |
+| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` / `EMAIL_USE_TLS` | — | SMTP provider config. Not yet chosen — see `docs/project-context.md` §10. |
 | `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` | `sk_test_...` / `pk_test_...` | Test keys work fine for dev; payment flows haven't been exercised against real sandbox transactions yet. |
 | `OPAY_SECRET_KEY` / `OPAY_PUBLIC_KEY` / `OPAY_MERCHANT_ID` | — | Same caveat as Paystack. |
 | `PAYMENT_CALLBACK_URL` | `http://localhost:3000/orders/callback` | Where the gateway redirects the user after payment. |
@@ -193,7 +193,7 @@ pytest
 
 `pytest-django` is configured (`pytest.ini` points at
 `config.settings.dev`), but no test suite has been written yet — see
-`project-context.md` §10. Verification so far has relied on:
+`docs/project-context.md` §10. Verification so far has relied on:
 
 ```bash
 python manage.py check          # system check
@@ -278,7 +278,7 @@ file already sets this). Before an actual production deploy:
 5. An S3 bucket (or equivalent) for media — `AWS_STORAGE_BUCKET_NAME` /
    `AWS_S3_REGION_NAME`.
 6. A Sentry DSN, if you want the already-wired error monitoring active.
-7. Review `project-context.md` §8 (Constraints & Guardrails) — data
+7. Review `docs/project-context.md` §8 (Constraints & Guardrails) — data
    retention / privacy policy (NDPR) has not been reviewed, and this app
    handles PII and payment references.
 

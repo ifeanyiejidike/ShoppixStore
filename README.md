@@ -12,7 +12,7 @@ independently deployable applications:
 | App | Path | Stack | Purpose |
 |---|---|---|---|
 | **Frontend** | [`shoppix/`](./shoppix) | Next.js 16, React 19, TypeScript, Tailwind v4 | Customer- and vendor-facing web app |
-| **Backend** | [`shoppix-backend/`](./shoppix-backend) | Django 5.2, Django REST Framework | REST API, business logic, payments |
+| **Backend** | [`shoppix_backend/`](./shoppix_backend) | Django 5.2, Django REST Framework | REST API, business logic, payments |
 
 Each app has its own README with stack-specific detail. This file covers the
 project as a whole: what it does, how the pieces fit together, and how to get
@@ -66,7 +66,7 @@ gateway webhooks, never trusted from a client-side redirect alone.
                     └──────────▲───────────┘
                                │ webhook + verify
 ┌──────────────┐   REST API   │  ┌────────────────────┐
-│   shoppix/    │◄────────────┴──►│  shoppix-backend/   │
+│   shoppix/    │◄────────────┴──►│  shoppix_backend/   │
 │   Next.js 16  │  session+CSRF   │  Django 5.2 + DRF   │
 │   (port 3000) │  cookie auth    │  (port 8000)        │
 └──────────────┘                 └─────────┬───────────┘
@@ -108,7 +108,7 @@ ShoppixStore/
 │   │                            types.ts, schema.ts (zod), utils.ts
 │   └── README.md              Frontend-specific docs
 │
-├── shoppix-backend/         Django REST API
+├── shoppix_backend/         Django REST API
 │   ├── apps/
 │   │   ├── accounts/          Auth, users, shipping addresses
 │   │   ├── vendors/           Vendor onboarding, approval, storefronts
@@ -122,7 +122,8 @@ ShoppixStore/
 │   ├── requests.http           Every endpoint, ready to run in VS Code/JetBrains
 │   └── README.md               Backend-specific docs
 │
-├── project-context.md       Living architecture/decision/status record —
+├── docs/
+│   └── project-context.md   Living architecture/decision/status record —
 │                              see "Project status" below
 ├── .gitignore                Root-level, covers both apps
 └── README.md                 This file
@@ -151,7 +152,7 @@ HTTP, there's no proxy layer in dev.
 ### 1. Backend (Django API — `:8000`)
 
 ```bash
-cd shoppix-backend
+cd shoppix_backend
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -175,7 +176,7 @@ Demo accounts created by `seed_demo_data`:
 | Customer | `customer@shoppix.com` | `Customer@12345` |
 
 API docs (Swagger UI): `http://localhost:8000/api/docs/`. Every endpoint is
-also covered in `shoppix-backend/requests.http` — see
+also covered in `shoppix_backend/requests.http` — see
 [Testing the API without the frontend](#testing-the-api-without-the-frontend).
 
 ### 2. Frontend (Next.js — `:3000`)
@@ -193,7 +194,7 @@ Open `http://localhost:3000`. Log in with one of the demo accounts above.
 
 ```bash
 # Backend
-cd shoppix-backend && python manage.py check
+cd shoppix_backend && python manage.py check
 
 # Frontend
 cd shoppix && npx tsc --noEmit && npx eslint src && npm run build
@@ -208,7 +209,7 @@ Both apps follow the same pattern: `.env.example` is the only file tracked
 in git; every real `.env*` variant is gitignored. See each app's own README
 for the full variable reference — the short version:
 
-**`shoppix-backend/.env`**: `DJANGO_SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`,
+**`shoppix_backend/.env`**: `DJANGO_SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`,
 `CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS` (must match the frontend's
 origin), `PAYSTACK_SECRET_KEY`/`OPAY_SECRET_KEY` (test keys are fine for
 dev), plus email, commission-rate, and order-timeout settings.
@@ -225,7 +226,7 @@ The backend has a full production-shaped Docker setup (Postgres, Redis,
 Django/gunicorn, Celery worker, Celery beat):
 
 ```bash
-cd shoppix-backend
+cd shoppix_backend
 cp .env.example .env   # fill in real Paystack/Opay keys, a real secret key, etc.
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
@@ -238,13 +239,13 @@ production-shaped run:
 docker compose up --build
 ```
 
-The frontend isn't containerized yet (see `project-context.md` → Open Gaps).
+The frontend isn't containerized yet (see `docs/project-context.md` → Open Gaps).
 Run it separately with `npm run dev` or `npm run build && npm start` against
 whichever backend URL is in `shoppix/.env`.
 
 ## Testing the API without the frontend
 
-`shoppix-backend/requests.http` covers **every** endpoint in the API,
+`shoppix_backend/requests.http` covers **every** endpoint in the API,
 organized by domain, with realistic example payloads. Open it in VS Code
 with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client)
 extension (or JetBrains' built-in HTTP client) and click "Send Request"
@@ -262,7 +263,7 @@ Both apps are audited clean as of the last check:
 
 ```bash
 cd shoppix && npm audit                              # 0 vulnerabilities
-cd shoppix-backend && pip install pip-audit && pip-audit   # 0 vulnerabilities
+cd shoppix_backend && pip install pip-audit && pip-audit   # 0 vulnerabilities
 ```
 
 Re-run both after any dependency bump. Two things worth knowing if you're
@@ -282,27 +283,27 @@ touching dependencies:
 
 ## Project status & documentation
 
-**`project-context.md`** at the repo root is the living source of truth for
+**`docs/project-context.md`** is the living source of truth for
 what's built, what's been verified (vs. still assumed), open product
 decisions, and architecture rationale — organized by feature, with an
 explicit "Open Gaps" section rather than letting unstated assumptions hide
 in the code. If something here in the README and something in
-`project-context.md` disagree, **`project-context.md` wins** — update it,
+`docs/project-context.md` disagree, **`docs/project-context.md` wins** — update it,
 not this file, when a real project decision changes.
 
 Highlights as of the last update:
 - Backend: full REST API, verified against live HTTP requests (not just
-  unit tests) — see `project-context.md` §4 for feature-by-feature status.
+  unit tests) — see `docs/project-context.md` §4 for feature-by-feature status.
 - Frontend: feature-complete for the core marketplace flow (browse → vendor
   storefronts → cart → checkout → account/order management, plus the
   vendor apply → dashboard → fulfill flow), verified via `tsc`, `eslint`,
   a full production build, and live HTTP checks against the running dev
   server — **not** yet by a human looking at it in an actual browser
-  (see `project-context.md` §10).
+  (see `docs/project-context.md` §10).
 - Open gaps needing your input before production: payout/vendor-disbursement
   automation, hosting target, SMTP provider, real payment gateway
   credentials, and a few explicit product-policy questions — all listed
-  in `project-context.md` §10.
+  in `docs/project-context.md` §10.
 
 ## Conventions
 
@@ -325,7 +326,7 @@ Nothing here is deployed anywhere yet. Before going further than local
 development:
 
 1. Choose a hosting target for both apps (not yet decided — see
-   `project-context.md` §10).
+   `docs/project-context.md` §10).
 2. Provision real Postgres + Redis instances, an SMTP provider, an S3 bucket
    (or equivalent) for media, and real Paystack/Opay live keys.
 3. Set `DEBUG=False`, a real `DJANGO_SECRET_KEY`, and run behind HTTPS —
@@ -333,7 +334,7 @@ development:
    `SESSION_COOKIE_SECURE`, HSTS, etc., but only takes effect when
    `DJANGO_SETTINGS_MODULE=config.settings.prod`.
 4. Decide on a CI/CD pipeline — none exists yet.
-5. Review `project-context.md` §8 (Constraints & Guardrails) and §10 (Open
+5. Review `docs/project-context.md` §8 (Constraints & Guardrails) and §10 (Open
    Gaps) — several of these are explicit blockers, not just nice-to-haves,
    for a production launch (e.g., no data-retention/privacy policy review
    has happened yet, and this app handles PII and payment references).

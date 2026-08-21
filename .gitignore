@@ -1,9 +1,9 @@
 # =============================================================================
 # ShoppixStore — root .gitignore
-# Monorepo: shoppix/ (Next.js frontend) + shoppix-backend/ (Django backend).
+# Monorepo: shoppix/ (Next.js frontend) + shoppix_backend/ (Django backend).
 # Rules here apply repo-wide; paths are written without a leading slash where
 # the pattern is meant to match in either subdirectory (e.g. node_modules/
-# inside shoppix/, __pycache__/ inside shoppix-backend/).
+# inside shoppix/, __pycache__/ inside shoppix_backend/).
 # =============================================================================
 
 # -----------------------------------------------------------------------
@@ -25,7 +25,7 @@ local_settings.py
 settings_local.py
 
 # =============================================================================
-# BACKEND (shoppix-backend/) — Django + DRF + Celery
+# BACKEND (shoppix_backend/) — Django + DRF + Celery
 # =============================================================================
 
 # Python bytecode / caches
@@ -63,9 +63,9 @@ db.sqlite3-wal
 db.sqlite3-shm
 db.pre_restore_*.sqlite3
 *.sqlite3-journal
-/shoppix-backend/staticfiles/
-/shoppix-backend/static_root/
-/shoppix-backend/media/
+/shoppix_backend/staticfiles/
+/shoppix_backend/static_root/
+/shoppix_backend/media/
 
 # Runtime artifacts — logs, backups
 /logs/
@@ -207,7 +207,3 @@ $RECYCLE.BIN/
 *.orig
 *.tmp
 *.temp
-
-
-# Others
-claude-chat.txt
