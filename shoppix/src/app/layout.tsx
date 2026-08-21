@@ -1,5 +1,15 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+// Self-hosted fonts (via @fontsource, bundled at build time from local node_modules)
+// instead of next/font/google, which requires live network access to
+// fonts.googleapis.com at BUILD time with no fallback — a production build
+// fails outright in any network-restricted environment (Docker, CI/CD,
+// corporate firewalls) if Google's font CDN isn't reachable. Self-hosting
+// removes that dependency entirely and is also better for performance/privacy.
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/inter";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
@@ -7,23 +17,6 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/auth-context";
 import { CartProvider } from "@/context/cart-context";
 import { siteUrl } from "@/lib/constants";
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -80,9 +73,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${fraunces.variable} ${inter.variable} ${plexMono.variable} antialiased flex min-h-screen flex-col`}
-      >
+      <body className="antialiased flex min-h-screen flex-col">
         <AuthProvider>
           <CartProvider>
             <Header />

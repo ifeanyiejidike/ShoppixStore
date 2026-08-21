@@ -94,4 +94,17 @@ template; every real `.env*` variant is gitignored.
 ## What's built so far
 
 - **Backend**: full REST API — accounts/auth (session+CSRF), vendor onboarding & approval, multi-vendor product catalog, cart, checkout with stock-locking, Paystack/Opay payment integration with webhook settlement, stale-order auto-cancellation, and verified-purchase-gated reviews. Verified against live HTTP requests, not just static checks — see `project-context.md` Section 4 for feature-by-feature status.
-- **Frontend**: in progress — design system and data/API layer are being rebuilt against the new backend; UI pages are being rebuilt page by page. Check `project-context.md` for current status before assuming a given page is done.
+- **Frontend**: feature-complete for the core marketplace flow — home, product browsing/search/filters, product detail + reviews, vendor storefronts, cart, checkout, full auth flow, account section (profile/orders/addresses), and the vendor-side apply → dashboard → fulfill flow. Built on a custom design system (see below), not default shadcn styling.
+
+## Dependencies & security
+
+Both apps are audited clean as of the last check — `npm audit` (frontend) and `pip-audit` (backend) both report **0 known vulnerabilities**. Re-run these after any dependency bump:
+
+```bash
+cd shoppix && npm audit
+cd shoppix-backend && pip install pip-audit && pip-audit
+```
+
+Backend runs **Django 5.2 (LTS)**, not 5.1 — 5.1.x was found to have a CVE with no fix released anywhere in that branch during this project's development, so it was upgraded rather than patched in place.
+
+Frontend fonts (Fraunces, Inter, IBM Plex Mono) are **self-hosted** via `@fontsource`/`@fontsource-variable` packages, not `next/font/google`. This is deliberate: `next/font/google` requires live network access to Google's font CDN at *build* time with no fallback, which breaks `next build` outright in any network-restricted environment (Docker, CI/CD, corporate firewalls). Self-hosting removes that dependency entirely — verify with `npm run build` (should complete with zero network-related errors) and check the built CSS has no `fonts.googleapis.com`/`fonts.gstatic.com` references if you ever touch the font setup.
