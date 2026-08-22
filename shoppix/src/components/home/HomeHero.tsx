@@ -9,22 +9,39 @@ const TRUST_POINTS = [
   { icon: Zap, label: "New flash deals daily" },
 ];
 
-// Verified real Unsplash photo (resolved via a live fetch of the photo's
-// own page, not a guessed ID) — a warm, human market portrait that carries
-// the "Nigeria's open market, online" positioning without leaning on the
-// generic gray placeholder boxes or the decorative-only mockups this hero
-// used before.
+// Verified real Unsplash photo (resolved via a live fetch of Unsplash's own
+// search-results page, not a guessed ID): a close-up of richly colored
+// textiles. Deliberately NOT a food/produce stall — a general marketplace
+// sells electronics, fashion, home goods, everything — so the hero image
+// needed to read as "vibrant marketplace of goods" rather than pigeonhole
+// the brand to one category the way an earlier market-vendor photo did.
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1585540083814-ea6ee8af9e4f?w=1400&q=80&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1578509566163-068acd11b8e7?w=2000&q=80&auto=format&fit=crop";
 
 export default function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-ink text-canvas">
-      <div className="lg:grid lg:min-h-[640px] lg:grid-cols-2">
-        {/* Text — reads first on mobile is debatable for a visual brand
-            statement, so the photo leads on small screens (order-1) and the
-            copy leads on desktop, where both are visible side by side. */}
-        <div className="order-2 flex flex-col justify-center px-4 py-12 sm:px-8 sm:py-16 lg:order-1 lg:px-14 lg:py-0">
+    <section className="relative flex min-h-[640px] items-center overflow-hidden bg-ink text-canvas">
+      {/* Full-bleed background photo, not a split layout */}
+      <Image
+        src={HERO_IMAGE}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+      />
+
+      {/* Two layered gradients: one darkens the bottom (so the trust-point
+          row and any short viewport always stay legible), the other
+          darkens the left (where the text sits) while letting the photo's
+          color show through more on the right. Together they guarantee
+          contrast without a flat, all-over dark wash that would hide the
+          photo entirely. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink/95 via-ink/60 to-transparent" />
+
+      <div className="container relative mx-auto px-4 py-20 sm:py-28">
+        <div className="max-w-xl">
           <span className="font-mono-tag inline-block w-fit rounded-full border border-marigold/40 px-3 py-1 text-xs uppercase tracking-wider text-marigold">
             Nigeria&apos;s open market, online
           </span>
@@ -33,7 +50,7 @@ export default function HomeHero() {
             Shop like <span className="not-italic text-marigold">no other.</span>
           </h1>
 
-          <p className="mt-5 max-w-md text-base text-canvas/75 sm:text-lg">
+          <p className="mt-5 max-w-md text-base text-canvas/80 sm:text-lg">
             Thousands of products from independent Nigerian vendors — one cart,
             one checkout, delivered to your door.
           </p>
@@ -52,38 +69,12 @@ export default function HomeHero() {
 
           <dl className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             {TRUST_POINTS.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2.5 text-sm text-canvas/80">
+              <div key={label} className="flex items-center gap-2.5 text-sm text-canvas/85">
                 <Icon className="h-4 w-4 shrink-0 text-marigold" />
                 <span>{label}</span>
               </div>
             ))}
           </dl>
-        </div>
-
-        {/* Photo — full-bleed, edge to edge, no padding, so it reads as a
-            real photograph rather than a boxed-in illustration. */}
-        <div className="relative order-1 h-72 sm:h-96 lg:order-2 lg:h-auto">
-          <Image
-            src={HERO_IMAGE}
-            alt="A vendor at a Nigerian market stall — Shoppix brings independent sellers like this online"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-          {/* Gradient for text legibility where the photo meets the ink
-              background, plus a subtle overall darken so the canvas-colored
-              badge below reads clearly against any part of the photo. */}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent lg:bg-gradient-to-r lg:from-ink/50 lg:via-transparent lg:to-transparent" />
-
-          {/* Single, confident social-proof callout — replaces the three
-              competing sticky-note mockups from the previous design, which
-              read as decorative filler rather than a real trust signal. */}
-          <div className="price-tag absolute bottom-5 left-5 w-52 rounded-md bg-canvas/95 p-4 shadow-lg backdrop-blur-sm lg:bottom-8 lg:left-8">
-            <span className="price-tag-hole" />
-            <p className="font-mono-tag text-[11px] text-ink/60">Verified vendors</p>
-            <p className="font-mono-tag text-lg font-semibold text-ink">2,400+ sellers</p>
-          </div>
         </div>
       </div>
     </section>
