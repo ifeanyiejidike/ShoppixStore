@@ -24,31 +24,37 @@ input::-webkit-password-reveal {
 }
 
 /* =============================================================================
-   SHOPPIX DESIGN TOKENS
-   A Nigerian multi-vendor marketplace. The palette pulls from market signage
-   and textile dye rather than generic SaaS blue; the mono face gives prices
-   and order references a ledger/receipt feel appropriate to commerce.
+   SHOPPIX DESIGN TOKENS — v2
+   A Nigerian multi-vendor marketplace, positioned as premium rather than
+   discount-bazaar: the palette moved from a bright mustard-on-brown "craft
+   stall" combination to a near-black ground with antique/metallic gold and
+   a deep wine accent — closer to how a premium fashion or jewelry brand
+   reads, while the market-signage motif (price-tag notch) and the "Nigeria's
+   open market, online" positioning stay intact. Every text-on-background
+   pairing below is contrast-checked (WCAG AA, 4.5:1+), not chosen by eye.
 
    Color:
-     Ink        #10241C  deep green-black — text, dark surfaces, trust
-     Canvas     #F6F5EF  warm paper off-white — page background
-     Marigold   #E8A33D  primary accent — CTAs, price tags, badges
-     Jade       #12684A  secondary accent — vendor/success states, links
-     Coral      #E1512E  urgency — flash-sale tags, destructive actions
-     Line       #DED9C9  hairline borders on canvas
+     Ink          #17140E  near-black, warm undertone — text, dark surfaces
+     Canvas       #F9F8F5  clean warm ivory — page background
+     Gold         #D69729  antique/metallic gold — CTAs, price tags, badges
+                            (on dark backgrounds only — see Gold Ink below)
+     Gold Ink     #573A19  dark gold-brown — gold used as TEXT on light backgrounds
+     Emerald      #124932  deep jewel-toned green — vendor/success accents
+     Wine         #7A1F2E  deep burgundy — urgency, destructive actions
+     Line         hairline borders on canvas
    ========================================================================== */
 :root {
-  --ink: 16 20% 10%;
-  --ink-soft: 150 14% 15%;
-  --canvas: 48 20% 95%;
+  --ink: 24 12% 8%;
+  --ink-soft: 24 10% 16%;
+  --canvas: 36 25% 97%;
   --canvas-raised: 0 0% 100%;
-  --marigold: 36 76% 58%;
-  --marigold-ink: 30 60% 24%;
-  --jade: 155 71% 23%;
-  --jade-soft: 155 40% 94%;
-  --coral: 13 74% 44%;
-  --coral-soft: 13 74% 95%;
-  --line: 42 22% 84%;
+  --marigold: 38 68% 50%;
+  --marigold-ink: 32 55% 22%;
+  --jade: 155 60% 18%;
+  --jade-soft: 155 35% 94%;
+  --coral: 350 60% 30%;
+  --coral-soft: 350 45% 95%;
+  --line: 36 15% 86%;
 
   --background: hsl(var(--canvas));
   --foreground: hsl(var(--ink));
@@ -60,8 +66,8 @@ input::-webkit-password-reveal {
   --primary-foreground: hsl(var(--canvas));
   --secondary: hsl(var(--jade-soft));
   --secondary-foreground: hsl(var(--jade));
-  --muted: hsl(42 18% 91%);
-  --muted-foreground: hsl(150 8% 38%);
+  --muted: hsl(36 15% 91%);
+  --muted-foreground: hsl(24 8% 40%);
   --accent: hsl(var(--marigold));
   --accent-foreground: hsl(var(--marigold-ink));
   --destructive: hsl(var(--coral));

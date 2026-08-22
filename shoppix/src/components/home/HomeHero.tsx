@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ShieldCheck, Truck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,12 +9,23 @@ const TRUST_POINTS = [
   { icon: Zap, label: "New flash deals daily" },
 ];
 
+// Verified real Unsplash photo (resolved via a live fetch of the photo's
+// own page, not a guessed ID) — a warm, human market portrait that carries
+// the "Nigeria's open market, online" positioning without leaning on the
+// generic gray placeholder boxes or the decorative-only mockups this hero
+// used before.
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1585540083814-ea6ee8af9e4f?w=1400&q=80&auto=format&fit=crop";
+
 export default function HomeHero() {
   return (
     <section className="relative overflow-hidden bg-ink text-canvas">
-      <div className="container mx-auto grid gap-8 px-4 py-14 sm:py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-12 lg:py-28">
-        <div>
-          <span className="font-mono-tag inline-block rounded-full border border-marigold/40 px-3 py-1 text-xs uppercase tracking-wider text-marigold">
+      <div className="lg:grid lg:min-h-[640px] lg:grid-cols-2">
+        {/* Text — reads first on mobile is debatable for a visual brand
+            statement, so the photo leads on small screens (order-1) and the
+            copy leads on desktop, where both are visible side by side. */}
+        <div className="order-2 flex flex-col justify-center px-4 py-12 sm:px-8 sm:py-16 lg:order-1 lg:px-14 lg:py-0">
+          <span className="font-mono-tag inline-block w-fit rounded-full border border-marigold/40 px-3 py-1 text-xs uppercase tracking-wider text-marigold">
             Nigeria&apos;s open market, online
           </span>
 
@@ -48,22 +60,29 @@ export default function HomeHero() {
           </dl>
         </div>
 
-        {/* Market ticket stack — echoes the price-tag signature at hero scale */}
-        <div className="relative mx-auto hidden w-full max-w-sm sm:block lg:max-w-none">
-          <div className="price-tag absolute -top-3 right-6 w-48 rotate-3 rounded-md bg-marigold p-4 shadow-lg">
+        {/* Photo — full-bleed, edge to edge, no padding, so it reads as a
+            real photograph rather than a boxed-in illustration. */}
+        <div className="relative order-1 h-72 sm:h-96 lg:order-2 lg:h-auto">
+          <Image
+            src={HERO_IMAGE}
+            alt="A vendor at a Nigerian market stall — Shoppix brings independent sellers like this online"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+          {/* Gradient for text legibility where the photo meets the ink
+              background, plus a subtle overall darken so the canvas-colored
+              badge below reads clearly against any part of the photo. */}
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent lg:bg-gradient-to-r lg:from-ink/50 lg:via-transparent lg:to-transparent" />
+
+          {/* Single, confident social-proof callout — replaces the three
+              competing sticky-note mockups from the previous design, which
+              read as decorative filler rather than a real trust signal. */}
+          <div className="price-tag absolute bottom-5 left-5 w-52 rounded-md bg-canvas/95 p-4 shadow-lg backdrop-blur-sm lg:bottom-8 lg:left-8">
             <span className="price-tag-hole" />
-            <p className="font-mono-tag text-[11px] text-marigold-ink/70">Today&apos;s deal</p>
-            <p className="font-mono-tag text-lg font-semibold text-marigold-ink">-30%</p>
-          </div>
-          <div className="price-tag relative left-4 top-8 w-52 -rotate-2 rounded-md bg-jade p-4 shadow-lg">
-            <span className="price-tag-hole" style={{ background: "rgba(255,255,255,0.4)" }} />
-            <p className="font-mono-tag text-[11px] text-canvas/70">Verified vendor</p>
-            <p className="font-mono-tag text-lg font-semibold text-canvas">2,400+ sellers</p>
-          </div>
-          <div className="price-tag relative left-16 top-16 w-44 rotate-1 rounded-md bg-canvas p-4 shadow-lg">
-            <span className="price-tag-hole" />
-            <p className="font-mono-tag text-[11px] text-ink/60">Fast delivery</p>
-            <p className="font-mono-tag text-lg font-semibold text-ink">Lagos → PH → Abuja</p>
+            <p className="font-mono-tag text-[11px] text-ink/60">Verified vendors</p>
+            <p className="font-mono-tag text-lg font-semibold text-ink">2,400+ sellers</p>
           </div>
         </div>
       </div>

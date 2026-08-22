@@ -311,10 +311,12 @@ Highlights as of the last update:
   ...`, `chore(scope): ...`), scoped to `backend` or `frontend` (or both,
   when a change genuinely spans them), since this is a monorepo with two
   independent apps sharing one git history.
-- **Design system**: `shoppix/src/app/globals.css` — a custom palette
-  (Ink/Canvas/Marigold/Jade/Coral), a Fraunces/Inter/IBM Plex Mono type
-  system, and a signature die-cut "price tag" component motif. Not default
-  shadcn/ui styling — see the frontend README for the full rationale.
+- **Design system**: `shoppix/src/app/globals.css` — a near-black/antique-gold/
+  wine/emerald palette (revised from an earlier, less premium mustard-on-brown
+  version after live-deployment visual feedback), a Fraunces/Inter/IBM Plex
+  Mono type system, and a signature die-cut "price tag" component motif. Not
+  default shadcn/ui styling — see the frontend README for the full palette
+  breakdown and rationale.
 - **Business logic placement (backend)**: multi-step transactional logic
   (checkout, payment settlement) lives in `services.py` per app, not in
   views, so it's reusable from webhooks, admin actions, and scheduled tasks

@@ -44,18 +44,31 @@ Not default shadcn/ui styling — a custom system defined in
 `src/app/globals.css` as CSS custom properties, mapped to Tailwind tokens via
 `@theme inline`.
 
-- **Palette**: Ink `#10241C` (near-black green, text/dark surfaces), Canvas
-  `#F6F5EF` (warm paper background), Marigold `#E8A33D` (primary
-  accent/CTAs), Jade `#12684A` (secondary/vendor accent), Coral (destructive/
-  urgency — tuned to `hsl(13 74% 44%)` specifically to pass WCAG AA contrast
-  against light backgrounds; don't lighten it back without re-checking
-  contrast).
+- **Palette (v2 — revised after live-deployment visual feedback)**: Ink
+  `#17140E` (near-black, warm undertone, not the earlier muddier
+  brown-black), Canvas `#F9F8F5` (clean warm ivory), Gold `#D69729`
+  (antique/metallic accent for CTAs/badges on dark backgrounds — a deeper,
+  more premium tone than the original bright mustard; a dark "Gold Ink"
+  variant, `#573A19`, handles gold used as text on light backgrounds), Wine
+  `#7A1F2E` (deep jewel-toned burgundy for destructive/urgency states,
+  replacing the original brighter orange-red Coral), Emerald `#124932`
+  (deepened from the original Jade). CSS variable *names* in `globals.css`
+  are unchanged (`--marigold`, `--jade`, `--coral`) even though the brand
+  names above are new — only the underlying HSL values moved, so don't be
+  thrown by a `text-marigold` class rendering gold. Every pairing is
+  contrast-checked (WCAG AA 4.5:1+, computed, not eyeballed): ink/canvas
+  17.27:1, gold-ink/white 10.37:1, wine/white 10.18:1, emerald/white
+  10.37:1.
 - **Type**: Fraunces (display/headings, used italic) + Inter (body/UI) + IBM
   Plex Mono (prices, order references — a deliberate "receipt/ledger"
   register for commerce data).
 - **Signature element**: a die-cut "price tag" notch (`.price-tag` utility
-  class) on product cards and hero decorative elements — a literal
-  market-price-tag motif tying back to the brand.
+  class) on product cards and the homepage hero's social-proof callout — a
+  literal market-price-tag motif tying back to the brand.
+- **Hero imagery**: the homepage hero uses a real, full-bleed photograph
+  (verified by fetching Unsplash's own live page and extracting the actual
+  CDN URL, not a guessed photo ID) rather than decorative UI mockups — see
+  `src/components/home/HomeHero.tsx`.
 - **Accessibility floor**: WCAG 2.1 AA. Every color pairing used for text has
   been checked against this, not just chosen by eye — see
   `docs/project-context.md` §11 changelog for the specific contrast audit.
