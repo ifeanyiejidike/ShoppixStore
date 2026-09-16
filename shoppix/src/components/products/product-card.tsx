@@ -54,7 +54,7 @@ export default function ProductCard({ product }: { product: ProductListItem }) {
           {/* Signature price tag — notched corner, pinned to the image */}
           <div className="price-tag absolute top-0 right-0 bg-marigold px-2.5 py-1.5 pr-3">
             <span className="price-tag-hole" />
-            <span className="font-mono-tag text-xs font-semibold text-marigold-ink">
+            <span className="font-mono-tag text-xs font-semibold text-white">
               {formatPriceToNaira(product.current_price)}
             </span>
           </div>

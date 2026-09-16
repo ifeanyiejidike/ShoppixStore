@@ -24,37 +24,46 @@ input::-webkit-password-reveal {
 }
 
 /* =============================================================================
-   SHOPPIX DESIGN TOKENS — v2
-   A Nigerian multi-vendor marketplace, positioned as premium rather than
-   discount-bazaar: the palette moved from a bright mustard-on-brown "craft
-   stall" combination to a near-black ground with antique/metallic gold and
-   a deep wine accent — closer to how a premium fashion or jewelry brand
-   reads, while the market-signage motif (price-tag notch) and the "Nigeria's
-   open market, online" positioning stay intact. Every text-on-background
-   pairing below is contrast-checked (WCAG AA, 4.5:1+), not chosen by eye.
+   SHOPPIX DESIGN TOKENS — v3
+   Revised again after the v2 near-black/gold direction, prompted by direct
+   user feedback ("why brown and yellow... doesn't appeal"), and grounded in
+   actual competitive/pattern research rather than aesthetic guessing: Jumia
+   uses orange, Konga uses pink — blue was the open lane in this market, and
+   the specific shade follows the pattern used by Stripe and Revolut (a deep
+   navy for depth/trust, paired with a vivid indigo accent for energy/CTAs),
+   not a flat corporate blue and NOT copied from Paystack's brand navy —
+   Shoppix integrates with Paystack, but that's not a reason to look like it.
+   Every text-on-background pairing below is contrast-checked (WCAG AA,
+   4.5:1+, computed), not chosen by eye.
 
    Color:
-     Ink          #17140E  near-black, warm undertone — text, dark surfaces
-     Canvas       #F9F8F5  clean warm ivory — page background
-     Gold         #D69729  antique/metallic gold — CTAs, price tags, badges
-                            (on dark backgrounds only — see Gold Ink below)
-     Gold Ink     #573A19  dark gold-brown — gold used as TEXT on light backgrounds
+     Navy         #0A2540  deep navy — text, dark surfaces, trust
+     Canvas       #F7F9FC  cool off-white — page background
+     Indigo       #4F46E5  vivid accent — CTAs, brand moments, price tags
+                            (bold enough it needs WHITE text on top, not a
+                            dark-on-light pairing — see Indigo Ink below)
+     Indigo Ink   #3730A3  darker indigo — indigo used as TEXT on light
+                            backgrounds (badges, hover states), NOT the
+                            color to put on top of solid Indigo
      Emerald      #124932  deep jewel-toned green — vendor/success accents
-     Wine         #7A1F2E  deep burgundy — urgency, destructive actions
-     Line         hairline borders on canvas
+                            (kept from v2; green's meaning doesn't depend on
+                            the rest of the palette being warm or cool)
+     Coral        #D63E24  urgency — flash-sale tags, destructive actions
+     Line         #E2E8F0  hairline borders on canvas
    ========================================================================== */
 :root {
-  --ink: 24 12% 8%;
-  --ink-soft: 24 10% 16%;
-  --canvas: 36 25% 97%;
+  --ink: 210 73% 15%;
+  --ink-soft: 210 50% 24%;
+  --canvas: 216 45% 98%;
   --canvas-raised: 0 0% 100%;
-  --marigold: 38 68% 50%;
-  --marigold-ink: 32 55% 22%;
+  --marigold: 243 75% 59%;
+  --marigold-ink: 244 55% 41%;
+  --marigold-light: 230 85% 75%;
   --jade: 155 60% 18%;
   --jade-soft: 155 35% 94%;
-  --coral: 350 60% 30%;
-  --coral-soft: 350 45% 95%;
-  --line: 36 15% 86%;
+  --coral: 9 71% 49%;
+  --coral-soft: 9 60% 95%;
+  --line: 214 32% 91%;
 
   --background: hsl(var(--canvas));
   --foreground: hsl(var(--ink));
@@ -66,9 +75,15 @@ input::-webkit-password-reveal {
   --primary-foreground: hsl(var(--canvas));
   --secondary: hsl(var(--jade-soft));
   --secondary-foreground: hsl(var(--jade));
-  --muted: hsl(36 15% 91%);
-  --muted-foreground: hsl(24 8% 40%);
-  --accent: hsl(var(--marigold));
+  --muted: hsl(216 20% 93%);
+  --muted-foreground: hsl(216 12% 40%);
+  /* Generic shadcn hover/focus chrome (dropdown items, button hovers,
+     skeletons) uses --accent as a SOLID fill — mapping that straight to the
+     bold Indigo (used deliberately for CTAs/brand moments) would flash a
+     full-saturation indigo on every dropdown hover, which reads as loud
+     rather than a subtle interaction state. Keep it a soft, light indigo
+     wash instead, paired with the dark Indigo Ink for readable text. */
+  --accent: hsl(243 55% 95%);
   --accent-foreground: hsl(var(--marigold-ink));
   --destructive: hsl(var(--coral));
   --destructive-foreground: hsl(0 0% 100%);
@@ -115,6 +130,8 @@ input::-webkit-password-reveal {
   --color-ink: hsl(var(--ink));
   --color-canvas: hsl(var(--canvas));
   --color-marigold: hsl(var(--marigold));
+  --color-marigold-ink: hsl(var(--marigold-ink));
+  --color-marigold-light: hsl(var(--marigold-light));
   --color-jade: hsl(var(--jade));
   --color-jade-soft: hsl(var(--jade-soft));
   --color-coral: hsl(var(--coral));

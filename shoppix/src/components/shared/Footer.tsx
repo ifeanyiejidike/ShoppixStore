@@ -40,7 +40,7 @@ export default function Footer() {
 
           {FOOTER_LINKS.map((group) => (
             <div key={group.heading}>
-              <h3 className="font-mono-tag text-xs uppercase tracking-wider text-marigold">
+              <h3 className="font-mono-tag text-xs uppercase tracking-wider text-marigold-light">
                 {group.heading}
               </h3>
               <ul className="mt-3 flex flex-col gap-2">

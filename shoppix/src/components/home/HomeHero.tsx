@@ -42,12 +42,12 @@ export default function HomeHero() {
 
       <div className="container relative mx-auto px-4 py-20 sm:py-28">
         <div className="max-w-xl">
-          <span className="font-mono-tag inline-block w-fit rounded-full border border-marigold/40 px-3 py-1 text-xs uppercase tracking-wider text-marigold">
+          <span className="font-mono-tag inline-block w-fit rounded-full border border-marigold-light/40 px-3 py-1 text-xs uppercase tracking-wider text-marigold-light">
             Nigeria&apos;s open market, online
           </span>
 
           <h1 className="font-display mt-5 text-4xl italic leading-[1.05] sm:text-5xl lg:text-6xl">
-            Shop like <span className="not-italic text-marigold">no other.</span>
+            Shop like <span className="not-italic text-marigold-light">no other.</span>
           </h1>
 
           <p className="mt-5 max-w-md text-base text-canvas/80 sm:text-lg">
@@ -56,7 +56,7 @@ export default function HomeHero() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" className="bg-marigold text-marigold-ink hover:bg-marigold/90" asChild>
+            <Button size="lg" className="bg-marigold text-white hover:bg-marigold/90" asChild>
               <Link href="/products">
                 Start shopping
                 <ArrowRight className="h-4 w-4" />
@@ -70,7 +70,7 @@ export default function HomeHero() {
           <dl className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             {TRUST_POINTS.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-2.5 text-sm text-canvas/85">
-                <Icon className="h-4 w-4 shrink-0 text-marigold" />
+                <Icon className="h-4 w-4 shrink-0 text-marigold-light" />
                 <span>{label}</span>
               </div>
             ))}

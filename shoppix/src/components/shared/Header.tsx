@@ -60,10 +60,10 @@ export default function Header() {
           <span>Delivering across Nigeria — pay with Paystack or Opay</span>
           {!loading && !isLoggedIn && (
             <div className="flex items-center gap-4">
-              <Link href="/auth/login" className="hover:text-marigold transition-colors">
+              <Link href="/auth/login" className="hover:text-marigold-light transition-colors">
                 Sign in
               </Link>
-              <Link href="/auth/register" className="hover:text-marigold transition-colors">
+              <Link href="/auth/register" className="hover:text-marigold-light transition-colors">
                 Create account
               </Link>
             </div>
